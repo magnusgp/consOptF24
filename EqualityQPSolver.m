@@ -18,108 +18,275 @@ function [x,lambda] = EqualityQPSolver(H,g,A,b,solver)
 end
 
 % Define each solver function here
-function [x,lambda] = EqualityQPSolverLUdense(H,g,A,b)
-    % Perform LU factorization
-    [L,U,P] = lu(A);
+function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
     
-    % Ensure b is a column vector
-    b = b(:);
-
-    disp('Size of P:');
-    disp(size(P));
-    disp('Size of L:');
-    disp(size(L));
-    disp('Size of U:');
-    disp(size(U));
-    disp('Size of b:');
-    disp(size(b));
-    
-    % Solve Ly = Pb for y
-    y = L \ (P * b);
-    
-    % Solve Ux = y for x
-    x = U \ y;
-    
-    % Compute lambda
-    lambda = H \ (g - A' * x);
-end
-
-function [x,lambda] = EqualityQPSolverLUsparse(H,g,A,b)
-    % Implement LU sparse factorization here
-    [m, n] = size(A);
-    [L, U, P] = lu(A);
-    y = P * b;
-    z = forwardSubstitution(L, y);
-    x = backwardSubstitution(U, z);
-    lambda = H * x + g;
-end
-
-function [x,lambda] = EqualityQPSolverLDLdense(H,g,A,b)
-    % Implement LDL dense factorization here
-    [m, n] = size(A);
-    [L, D] = ldl(A);
-    y = forwardSubstitution(L, b);
-    z = D \ y;
-    x = backwardSubstitution(L', z);
-    lambda = H * x + g;
-end
-
-function [x,lambda] = EqualityQPSolverLDLsparse(H,g,A,b)
-    % Implement LDL sparse factorization here
-    [m, n] = size(A);
-    [L, D] = ldl(A);
-    y = forwardSubstitution(L, b);
-    z = D \ y;
-    x = backwardSubstitution(L', z);
-    lambda = H * x + g;
-end
-
-function [x,lambda] = EqualityQPSolverRangeSpace(H,g,A,b)
-    % Implement range-space factorization here
-    [m, n] = size(A);
-    [Q, R] = qr(A');
-    Q1 = Q(:, 1:m);
-    Q2 = Q(:, m+1:end);
-    R1 = R(1:m, :);
-    R2 = R(m+1:end, :);
-    y = R1 \ b;
-    z = R2' \ (H * Q2 * y + g);
-    x = Q1 * y + Q2 * z;
-    lambda = H * x + g;
-end
-
-function [x,lambda] = EqualityQPSolverNullSpace(H,g,A,b)
-    % Implement null-space factorization here
-    [m, n] = size(A);
-    [Q, R] = qr(A);
-    Q1 = Q(:, 1:n);
-    Q2 = Q(:, n+1:end);
-    R1 = R(1:n, :);
-    R2 = R(n+1:end, :);
-    y = R1 \ b;
-    z = R2' \ (H * Q2 * y + g);
-    x = Q1 * y + Q2 * z;
-    lambda = H * x + g;
-end
-
-function z = forwardSubstitution(L, b)
-    [m, n] = size(L);
-    z = zeros(n, 1);
-    for i = 1:n
-        z(i) = b(i) / L(i, i);
-        for j = i+1:n
-            b(j) = b(j) - L(j, i) * z(i);
-        end
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
     end
-end
-
-function x = backwardSubstitution(U, z)
-    [m, n] = size(U);
-    x = zeros(n, 1);
-    for i = n:-1:1
-        x(i) = z(i) / U(i, i);
-        for j = i-1:-1:1
-            z(j) = z(j) - U(j, i) * x(i);
-        end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
     end
-end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Solve the system using dense LU factorization
+    [L, U, P] = lu(KKT_matrix);
+    y = L \ (P .* rhs);
+    sol = U \ y;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end    
+
+function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
+    
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
+    end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Convert KKT matrix to sparse format
+    KKT_sparse = sparse(KKT_matrix);
+    
+    % Solve the system using sparse LU factorization
+    [L, U, P, Q] = lu(KKT_sparse);
+    y = Q * (U \ (L \ (P * rhs)));
+    sol = y;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end
+        
+function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
+    
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
+    end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Solve the system using dense LDL factorization
+    [L, D, P] = ldl(KKT_matrix);
+    y = P * (L' \ (D \ (L \ (P' * rhs))));
+    sol = y;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end            
+
+function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
+    
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
+    end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Compute sparse Cholesky factorization
+    [L, p, s] = chol(KKT_matrix, 'lower', 'vector');
+    
+    % Check for factorization failure
+    if s ~= 0
+        error('Cholesky factorization failed');
+    end
+    
+    % Solve the system using sparse forward and backward substitution
+    y = L'\(L\rhs(p));
+    sol = y;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end
+                
+
+function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
+    
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
+    end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Compute the range-space decomposition of KKT_matrix
+    [U, S, V] = svd(KKT_matrix);
+    
+    % Determine the rank of the KKT_matrix
+    rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
+    
+    % Extract relevant matrices from the decomposition
+    U1 = U(:, 1:rank_KKT);
+    V1 = V(:, 1:rank_KKT);
+    S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
+    
+    % Solve the system using the range-space factorization
+    sol = V1 * S1_inv * U1' * rhs;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end
+        
+
+function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
+    % Solves the Equality Constrained Convex QP problem:
+    %   min_x phi = 1/2 * x' * H * x + g' * x
+    %   subject to: A' * x = b
+    %
+    % Inputs:
+    %   H: Positive definite matrix (n x n)
+    %   g: Column vector of size n
+    %   A: Matrix defining the constraints (m x n)
+    %   b: Column vector of size m
+    %
+    % Outputs:
+    %   x: Solution vector (n x 1)
+    %   lambda: Lagrange multiplier (m x 1)
+    
+    % Check if H is positive definite
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
+    
+    % Check dimensions
+    [n, ~] = size(A);
+    if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
+        error('Dimensions of inputs are inconsistent');
+    end
+    
+    % Formulate the KKT system
+    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    rhs = [-g; b];
+    
+    % Compute the null space of KKT_matrix
+    [~, ~, V] = svd(KKT_matrix');
+    null_space_basis = V(:, end - rank(KKT_matrix) + 1:end);
+    
+    % Compute the null-space factorization
+    null_space_factor = null_space_basis * null_space_basis';
+    
+    % Solve the system using the null-space factorization
+    sol = eye(size(KKT_matrix)) - null_space_factor;
+    sol = sol \ rhs;
+    
+    % Extract solution and Lagrange multiplier
+    x = sol(1:n);
+    lambda = sol(n+1:end);
+    
+    end

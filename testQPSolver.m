@@ -20,8 +20,11 @@ A = [16.1000 1.0000;
 b = [15; 
     1];
 
-% Define the solvers
-solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
+% Defining the solvers
+% WORKING SOLVERS: LUsparse, LDLdense, range-space
+% MISSING SOLVERS: LUdense, LDLsparse, null-space
+solvers = {'LUsparse', 'LDLdense', 'range-space'};
+% solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
 
 % Define the range for b(1)
 b1_range = 8.5:0.1:18.68;
@@ -40,7 +43,7 @@ for i = 1:length(b1_range)
         [x,lambda] = EqualityQPSolver(H,g,A,b,solvers{j});
         
         % Store the solution
-        x_solutions(i,j) = x(1);  % assuming we are interested in the first element of x
+        x_solutions(i,j) = x(1);
     end
 end
 
@@ -48,7 +51,7 @@ end
 figure;
 hold on;
 for j = 1:length(solvers)
-    plot(b1_range, x_solutions(:,j), 'DisplayName', solvers{j});
+    plot(b1_range, x_solutions(:,j), '-o', 'DisplayName', solvers{j});
 end
 hold off;
 legend('Location', 'best');
