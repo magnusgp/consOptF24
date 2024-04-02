@@ -23,9 +23,62 @@ b = [15;
 % Defining the solvers
 % WORKING SOLVERS: LUsparse, LDLdense, range-space
 % MISSING SOLVERS: LUdense, LDLsparse, null-space
-solvers = {'LUsparse', 'LDLdense', 'range-space'};
+solvers = {'LUsparse', 'LDLdense'};
 % solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
 
+% TASK 1.4/1.5
+
+% Define the problem sizes and beta values
+n_values = 10:10:100;
+beta_values = 0.1:0.1:1.0;
+
+% Initialize the solution and runtime matrices
+x_solutions = zeros(length(n_values), length(beta_values), length(solvers));
+runtimes = zeros(length(n_values), length(beta_values), length(solvers));
+
+% Loop over the problem sizes
+for i = 1:length(n_values)
+    % Loop over the beta values
+    for j = 1:length(beta_values)
+        % Loop over the solvers
+        for k = 1:length(solvers)
+            % Start the timer
+            tic;
+            
+            % Call the testProblem function
+            [x, lambda] = testQPs(n_values(i), beta_values(j), 0.1, solvers{k});
+            
+            % Stop the timer and store the runtime
+            runtimes(i, j, k) = toc;
+            
+            % Store the solution
+            x_solutions(i, j, k) = x(1);
+        end
+    end
+end
+
+% Plot the solutions and runtimes
+for k = 1:length(solvers)
+    figure;
+    surf(n_values, beta_values, squeeze(x_solutions(:,:,k)));
+    title(['Solutions for ', solvers{k}]);
+    xlabel('Problem size n');
+    ylabel('Number of constraints m = beta * n');
+    zlabel('Solution x(1)');
+    
+    figure;
+    surf(n_values, beta_values, squeeze(runtimes(:,:,k)));
+    title(['Runtimes for ', solvers{k}]);
+    xlabel('Problem size n');
+    ylabel('Number of constraints m = beta * n');
+    zlabel('Runtime (seconds)');
+end
+
+
+clear
+clc
+
+% TASK 1.6
 % Define the range for b(1)
 b1_range = 8.5:0.1:18.68;
 
