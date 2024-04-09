@@ -134,8 +134,7 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     rhs = [-g; b];
     
     % Solve the system using dense LDL factorization
-    [L, D] = ldl(KKT_matrix);
-    disp(D);
+    [L, D, ~] = ldl(KKT_matrix);
     y = (L' \ (D \ (L \ rhs)));
     sol = y;
     
@@ -218,6 +217,8 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     % Formulate the KKT system
     KKT_matrix = [H, A; A', zeros(size(A', 1))];
     rhs = [-g; b];
+
+    KKT_matrix = full(KKT_matrix);
     
     % Compute the range-space decomposition of KKT_matrix
     [U, S, V] = svd(KKT_matrix);
