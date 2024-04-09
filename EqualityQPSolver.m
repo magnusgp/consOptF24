@@ -50,7 +50,7 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     
     % Solve the system using dense LU factorization
     [L, U, P] = lu(KKT_matrix);
-    y = L \ (P .* rhs);
+    y = L \ (P * rhs);
     sol = U \ y;
     
     % Extract solution and Lagrange multiplier
@@ -134,8 +134,9 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     rhs = [-g; b];
     
     % Solve the system using dense LDL factorization
-    [L, D, P] = ldl(KKT_matrix);
-    y = P * (L' \ (D \ (L \ (P' * rhs))));
+    [L, D] = ldl(KKT_matrix);
+    disp(D);
+    y = (L' \ (D \ (L \ rhs)));
     sol = y;
     
     % Extract solution and Lagrange multiplier
@@ -171,26 +172,21 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    KKT_matrix = [H, A; A', sparse(size(A', 1), size(A, 2))];
     rhs = [-g; b];
     
-    % Compute sparse Cholesky factorization
-    [L, p, s] = chol(KKT_matrix, 'lower', 'vector');
-    
-    % Check for factorization failure
-    if s ~= 0
-        error('Cholesky factorization failed');
-    end
-    
-    % Solve the system using sparse forward and backward substitution
-    y = L'\(L\rhs(p));
+    % LDL factorization
+    [L, D, P] = ldl(KKT_matrix);
+        
+    y = P * (L' \ (D \ (L \ (P' * rhs))));
+
     sol = y;
     
-    % Extract solution and Lagrange multiplier
+    % Extract the solution vectors
     x = sol(1:n);
     lambda = sol(n+1:end);
+end
     
-    end
                 
 
 function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
@@ -271,22 +267,28 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
-    rhs = [-g; b];
+    % KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    % rhs = [-g; b];
     
-    % Compute the null space of KKT_matrix
-    [~, ~, V] = svd(KKT_matrix');
-    null_space_basis = V(:, end - rank(KKT_matrix) + 1:end);
+    % Step 1: Find the range space and null space of A
+    [Q, R] = qr(H);
+    range_space_basis = Q(:, 1:rank(A));
+    null_space_basis = Q(:, rank(A)+1:end);
+
+    % Investigate dims of R, Q and g
     
-    % Compute the null-space factorization
-    null_space_factor = null_space_basis * null_space_basis';
+    Qinvg = Q' * g;
+
+    % Step 2: Solve for x_R
+    x_R = (R' \ (Qinvg))';
     
-    % Solve the system using the null-space factorization
-    sol = eye(size(KKT_matrix)) - null_space_factor;
-    sol = sol \ rhs;
+    % Step 3: Solve for x_N
+    x_N = null_space_basis * (null_space_basis' * (b - H * x_R));
     
-    % Extract solution and Lagrange multiplier
-    x = sol(1:n);
-    lambda = sol(n+1:end);
+    % Step 4: Combine x_R and x_N to get the solution x
+    x = x_R + x_N;
+    
+    % Step 5: Solve for lambda
+    lambda = (H * x + g - A * x);
     
     end
