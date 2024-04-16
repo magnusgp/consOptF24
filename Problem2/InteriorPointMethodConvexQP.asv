@@ -1,4 +1,4 @@
-function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
+function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d)
 
     % Assume form
     % min f(x) = 1/2 x' H x + g' x
@@ -7,17 +7,16 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
     % C' x >= d
     %
     % We assume C is non-empty, whereas A may be empty, i.e. A = [];
-    % 
-    % x: variable we want to determine
-    % y: equality constraint lagrange multiplier
-    % z: inequality constraint lagrange multiplier
-    % s: slack variable
+
+
     
     % Initialize
     x = x0;
     y = y0;
     z = z0;
     s = s0;
+
+    X = x;
 
     if isempty(A) % If no equality constraints
         rL = H*x+g-C*z;
@@ -32,48 +31,12 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
 
     mc = length(s);
 
-    %% Compute starting values
-
     mu = (z'*s)/mc;
 
-    % Compute S^-1 Z
-    D = diag(z./s);
+    
 
-    Hbar = H + C*D*C';
-
-    sysmat = [Hbar -A;-A' zeros(size(A,2),size(A,2))];
-
-    % [Lsys,Dsys] = ldl(sysmat);
-
-    %%% Affine direction %%%
-
-    rLbar = rL - C*D*(rC - rsz./z);
-
-    sysrhs = -[rLbar;rA];
-
-    % [deltaxyaff] = Lsys'\(Dsys\(Lsys\sysrhs));
-    [deltaxyaff] = sysmat\sysrhs;
-
-    deltaxaff = deltaxyaff(1:length(x));
-    deltayaff = deltaxyaff((length(x)+1):end);
-
-    deltazaff = -D*C'*deltaxaff + D*(rC-rsz./z);
-    deltasaff = -rsz./z - (deltazaff.*s)./z;
-
-    for i = 1:length(y0)
-        y(i) = max(1,abs(y0(i)+deltayaff));
-        s(i) = max(1,abs(s0(i)+deltasaff));
-    end
-
-    X = x;
-
-    k = 0;
-
-    converged = false;
-
-    while ~converged && k < maxIter
-
-        k = k + 1;
+    % while FirstOrderKKT()
+    for i = 1:20
         
         % Compute S^-1 Z
         D = diag(z./s);
@@ -84,7 +47,7 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
 
         % [Lsys,Dsys] = ldl(sysmat);
 
-        %% Affine direction
+        %%% Affine direction %%%
         
         rLbar = rL - C*D*(rC - rsz./z);
         
@@ -101,12 +64,12 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
 
         alphaaff = max([-z./deltazaff;-s./deltasaff]);
 
-        %% Duality gap and centering parameter
+        %%% Duality gap and centering parameter %%% 
+        % This part is not working
+
+        affinestep = true;
         
-        % Choose to use centering correction
-        correctorstep = true;
-        
-        if correctorstep
+        if affinestep
             muaff = (z + alphaaff*deltazaff)'*(s + alphaaff*deltasaff)/mc;
     
             sigma = (muaff/mu)^3;
@@ -129,11 +92,10 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
             deltas = -rszbar./z - deltaz.*s./z;
     
             alpha = max([-z./deltaz;-s./deltas]);
-            
         end
         %%% Update iteration %%%
         
-        if ~correctorstep
+        if ~affinestep
             alpha = alphaaff;
             deltax = deltaxaff;
             deltay = deltayaff;
@@ -163,8 +125,6 @@ function [X] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
         mu = (z'*s)/mc;
 
         X = [X x];
-
-        converged = norm(blkdiag(rL,rA,rC,mu),'inf') < tol;
 
     end
 end

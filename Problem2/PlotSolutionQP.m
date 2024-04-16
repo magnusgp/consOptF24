@@ -41,8 +41,7 @@ u = u + us;
 r = reshape(R_k,[2 100]) + zs;
 
 %% Plot inputs
-figure
-tiledlayout(2,1)
+
 nexttile
 for i=1:2
     stairs(T,u(i,:),'Linewidth',2)

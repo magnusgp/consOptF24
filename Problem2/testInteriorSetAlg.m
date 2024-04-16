@@ -28,7 +28,7 @@ disp(xout)
 % Need to find feasible x0 and active constraints at x0
 
 % Feasible starting point
-x0 = [4;5];
+x0 = [4;4];
 y0 = [];
 z0 = [1;1];
 s0 = [1;1];
@@ -48,7 +48,10 @@ d = bineq;
 H = [3 1;1 4];
 g = [5;1];
 
-X = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d);
+maxIter = 100;
+tol = 10^-6;
+
+X = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol);
 
 disp("Interior set:")
 disp(X(:,(end-4):end))
