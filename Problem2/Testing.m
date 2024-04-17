@@ -25,7 +25,7 @@ figure
 tiledlayout(3,2)
 PlotSolutionQP(xquadprog)
 
-sprintf("Quadprog \niter: %f \ntime: %f \n", output.iterations, QuadprogTime)
+sprintf("Quadprog \niter: %.0f \ntime: %.2f \n", output.iterations, QuadprogTime)
 
 x0 = lb;
 
@@ -40,23 +40,25 @@ b = -[lb;
      -sysmat.du];
 
 tic;
-[xactiveset,lambdaopt,Wset,it] = qpsolverActiveSet(H,g,A,b,x0);
-ActiveSetTime = toc;
+[xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,A,b,x0);
+ASTime = toc;
 
-PlotSolutionQP(xactiveset)
+PlotSolutionQP(xAS)
 
-sprintf("Active set \niter: %f \ntime: %f \n", it, ActiveSetTime)
+sprintf("Active set \niter: %.0f \ntime: %.2f \n", itAS, ASTime)
 
-eps = 0.5;
-
-x0 = x0 + eps;
+x0 = lb;
 y0 = [];
 z0 = ones(size(A,2),1);
 s0 = z0;
 
-maxIter = 100;
-tol = 1.0e-8;
+maxIter = 200;
+tol = 1.0e-5;
 
-[xinteriorpoint] = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,[],[],A,b,maxIter,tol);
+tic;
+[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],A,-b,maxIter,tol);
+IPTime = toc;
 
-PlotSolutionQP(xinteriorpoint(:,end))
+PlotSolutionQP(xIP)
+
+sprintf("Interior point \niter: %.0f \ntime: %.2f \n", itIP, IPTime)

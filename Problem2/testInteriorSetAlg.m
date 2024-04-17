@@ -4,23 +4,23 @@ close all
 
 addpath('../');
 
-Aineq = [1 3;1 1]';
-% Aeq = [1 0];
+Aineq = [2 1;6 1];
+% Aeq = [-3 2];
 Aeq = [];
 
-bineq = [-1;1];
-% beq = [1];
+bineq = [10;1];
+% beq = -2;
 beq = [];
 
-G = [3 1;1 4];
-c = [5;1];
+H = [3 1;1 4];
+g = [5;1];
 
-f = @(x) 1/2*x'*G*x+c'*x;
+f = @(x) 1/2*x'*H*x+g'*x;
 
 x0 = [4;5];
 
 % xout = fmincon(f,x0,A,b,Aeq,beq);
-xout = fmincon(f,x0,-Aineq,-bineq,Aeq,beq);
+xout = fmincon(f,x0,-Aineq',-bineq,Aeq,beq);
 
 disp("Fmincon:")
 disp(xout)
@@ -28,7 +28,7 @@ disp(xout)
 % Need to find feasible x0 and active constraints at x0
 
 % Feasible starting point
-x0 = [4;4];
+x0 = [4;5];
 y0 = [];
 z0 = [1;1];
 s0 = [1;1];
@@ -42,7 +42,7 @@ s0 = [1;1];
 A = Aeq;
 b = beq;
 
-C = Aineq';
+C = Aineq;
 d = bineq;
 
 H = [3 1;1 4];
@@ -51,10 +51,10 @@ g = [5;1];
 maxIter = 100;
 tol = 10^-6;
 
-X = InteriorPointMethodConvexQP(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol);
+[xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol);
 
-disp("Interior set:")
-disp(X(:,(end-4):end))
+% disp("Interior set:")
+% disp(X(:,(end-4):end))
 
 %% Plot
 
@@ -77,8 +77,8 @@ F = reshape(arrayfun(falt,X1(:),X2(:)),length(x1),length(x2));
 v = 0:2:100;
 
 % Inequalities
-c1 = @(xx1,xx2) Aineq(1,:)*[xx1;xx2]<=bineq(1);
-c2 = @(xx1,xx2) Aineq(2,:)*[xx1;xx2]<=bineq(2);
+c1 = @(xx1,xx2) Aineq(:,1)'*[xx1;xx2]<=bineq(1);
+c2 = @(xx1,xx2) Aineq(:,2)'*[xx1;xx2]<=bineq(2);
 
 % Equalities
 % c3 = @(xx1,xx2) Aeq*[xx1;xx2]==beq;
