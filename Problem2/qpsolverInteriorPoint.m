@@ -1,4 +1,4 @@
-function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol)
+function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol,predictorCorrector)
 
     % Assume form
     % min f(x) = 1/2 x' H x + g' x
@@ -19,6 +19,12 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
     z = z0;
     s = s0;
 
+    mc = 0.5*length(s);
+
+    e = ones(length(s),1);
+
+    %% Compute starting values
+
     % Compute residuals
 
     if isempty(A) % If no equality constraints
@@ -32,60 +38,65 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
     rC = s+d-C'*x;
     rsz = s.*z;
 
-    mc = length(s);
+    D = diag(z./s);
 
-    mu = (z'*s)/mc;
+    % One step in affine direction
 
-    %% Compute starting values
-
-    S = diag(s);
-    Z = diag(z);
-
-    Sinv = diag(1./s);
-    Zinv = diag(1./z);
-
-    Hbar = H + C*Sinv*Z*C';
+    Hbar = H + C*D*C';
 
     sysmat = [Hbar -A;-A' zeros(size(A,2),size(A,2))];
 
     [Lsys,Dsys] = ldl(sysmat);
 
-    rLbar = rL - C*Sinv*Z*(rC - Zinv*rsz);
+    rLbar = rL - C*D*(rC - rsz./z);
 
     sysrhs = -[rLbar;rA];
 
     [deltaxyaff] = Lsys'\(Dsys\(Lsys\sysrhs));
 
     deltaxaff = deltaxyaff(1:length(x));
-    deltayaff = deltaxyaff((length(x)+1):end);
+    % deltayaff = deltaxyaff((length(x)+1):end);
 
-    deltazaff = -Sinv*Z*C'*deltaxaff + Sinv*Z*(rC-Zinv*rsz);
-    deltasaff = -Zinv*rsz - Zinv*S*deltazaff;
+    deltazaff = -D*C'*deltaxaff + D*(rC-rsz./z);
+    deltasaff = -rsz./z - (s./z).*deltazaff;
 
-    for i = 1:length(z0)
-        z(i) = max(1,abs(z0(i)+deltazaff(i)));
-        s(i) = max(1,abs(s0(i)+deltasaff(i)));
+    for i = 1:length(z)
+        z(i) = max(1,abs(z(i)+deltazaff(i)));
+        s(i) = max(1,abs(s(i)+deltasaff(i)));
     end
 
     %% Start iterations
+    
+    % Compute residuals
+
+    if isempty(A) % If no equality constraints
+        rL = H*x+g-C*z;
+        rA = [];
+    else
+        rL = H*x+g-A*y-C*z;
+        rA = b-A'*x;
+    end
+    
+    rC = s+d-C'*x;
+    rsz = s.*z;
+
+    D = diag(z./s);
+
+    mu = (z'*s)/mc;
+
+    % Start iterations
 
     X = x;
 
     k = 0;
 
-    converged = false;
+    converged = norm(blkdiag(rL,rA,rC,mu),'inf') < tol;
 
     while ~converged && k < maxIter
 
         k = k + 1;
         
-        S = diag(s);
-        Z = diag(z);
-    
-        Sinv = diag(1./s);
-        Zinv = diag(1./z);
-
-        Hbar = H + C*Sinv*Z*C';
+        Hbar = H + C*D*C';
         
         sysmat = [Hbar -A;-A' zeros(size(A,2),size(A,2))];
 
@@ -93,7 +104,7 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
 
         %% Affine direction
         
-        rLbar = rL - C*Sinv*Z*(rC - Zinv*rsz);
+        rLbar = rL - C*D*(rC - rsz./z);
         
         sysrhs = -[rLbar;rA];
 
@@ -102,8 +113,8 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
         deltaxaff = deltaxyaff(1:length(x));
         deltayaff = deltaxyaff((length(x)+1):end);
 
-        deltazaff = -Sinv*Z*C'*deltaxaff + Sinv*Z*(rC-Zinv*rsz);
-        deltasaff = -Zinv*rsz - Zinv*S*deltazaff;
+        deltazaff = -D*C'*deltaxaff + D*(rC-rsz./z);
+        deltasaff = -rsz./z - (s./z).*deltazaff;
 
         alphaaff = 1;
 
@@ -113,19 +124,16 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
 
         %% Duality gap and centering parameter
         
-        % Choose to use centering correction
-        correctorstep = false;
-        
-        if correctorstep
-            muaff = (z + alphaaff*deltazaff)'*(s + alphaaff*deltasaff)/mc;
+        if predictorCorrector
+            muaff = ((z + alphaaff*deltazaff)'*(s + alphaaff*deltasaff))/mc;
     
             sigma = (muaff/mu)^3;
     
             %% Affine-centering-correction direction
     
-            rszbar = rsz + deltasaff.*deltazaff - sigma*mu*ones(length(rsz),1);
+            rszbar = rsz + diag(deltasaff)*diag(deltazaff)*e - sigma*mu*e;
     
-            rLbar = rL - C*Sinv*Z*(rC - Zinv*rszbar);
+            rLbar = rL - C*D*(rC - rszbar./z);
     
             sysrhs = -[rLbar;rA];
     
@@ -134,8 +142,8 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
             deltax = deltaxy(1:length(x));
             deltay = deltaxy((length(x)+1):end);
             
-            deltaz = -Sinv*Z*C'*deltax + Sinv*Z*(rC-Zinv*rszbar);
-            deltas = -Zinv*rszbar - Zinv*S*deltaz;
+            deltaz = -D*C'*deltax + D*(rC-rszbar./z);
+            deltas = -rszbar./z - diag(s./z)*deltaz;
 
             alpha = 1;
 
@@ -146,7 +154,7 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
         end
         %%% Update iteration %%%
         
-        if ~correctorstep
+        if ~predictorCorrector
             alpha = alphaaff;
             deltax = deltaxaff;
             deltay = deltayaff;
@@ -162,6 +170,8 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
         z = z + alphabar*deltaz;
         s = s + alphabar*deltas;
         
+        % Compute residuals
+
         if isempty(A) % If no equality constraints
             rL = H*x+g-C*z;
             rA = [];
@@ -172,6 +182,8 @@ function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,m
 
         rC = s+d-C'*x;
         rsz = s.*z;
+
+        D = diag(z./s);
 
         mu = (z'*s)/mc;
 

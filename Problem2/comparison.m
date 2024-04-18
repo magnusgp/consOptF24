@@ -32,11 +32,15 @@ s0 = [1;1];
 maxIter = 100;
 tol = 10^-6;
 
-[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol);
+predictorCorrector = true;
+[xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
+
+predictorCorrector = false;
+[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
 [xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0);
 
-sprintf('IP iter: %.0f \nAS iter: %.0f',itIP,itAS)
+sprintf('IPPC iter: %.0f \nIP iter: %.0f \nAS iter: %.0f',itIPPC,itIP,itAS)
 
 %% Plot
 
@@ -81,6 +85,7 @@ scatter([X1(C2)],[X2(C2)],mkrsize,"square","filled",'MarkerFaceColor',mkrcol,'Ma
 
 hold on
 
-plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerFaceColor','r','linewidth',2)
-plot(XAS(1,:),XAS(2,:),'-o','color','b','MarkerFaceColor','b','linewidth',2)
-legend("Interior point","Active set",Location="southwest")
+plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerSize',3,'MarkerFaceColor','r','linewidth',1.5)
+plot(XIPPC(1,:),XIPPC(2,:),'-o','color','b','MarkerSize',3,'MarkerFaceColor','b','linewidth',1.5)
+plot(XAS(1,:),XAS(2,:),'-o','color','m','MarkerSize',3,'MarkerFaceColor','m','linewidth',1.5)
+legend("Interior point w.o. corrector","Interior point w. corrector","Active set",Location="southwest")
