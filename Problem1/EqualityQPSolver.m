@@ -45,9 +45,9 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    KKT_matrix = full([H, A; A', zeros(size(A', 1))]);
     rhs = [-g; b];
-    
+
     % Solve the system using dense LU factorization
     [L, U, P] = lu(KKT_matrix);
     y = L \ (P * rhs);
@@ -88,7 +88,7 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     % Formulate the KKT system
     KKT_matrix = [H, A; A', zeros(size(A', 1))];
     rhs = [-g; b];
-    
+
     % Convert KKT matrix to sparse format
     KKT_sparse = sparse(KKT_matrix);
     
@@ -130,11 +130,11 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    KKT_matrix = full([H, A; A', zeros(size(A', 1))]);
     rhs = [-g; b];
-    
+
     % Solve the system using dense LDL factorization
-    [L, D, ~] = ldl(KKT_matrix);
+    [L, D] = ldl(KKT_matrix);
     y = (L' \ (D \ (L \ rhs)));
     sol = y;
     
@@ -173,10 +173,10 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     % Formulate the KKT system
     KKT_matrix = [H, A; A', sparse(size(A', 1), size(A, 2))];
     rhs = [-g; b];
-    
+
     % LDL factorization
     [L, D, P] = ldl(KKT_matrix);
-        
+
     y = P * (L' \ (D \ (L \ (P' * rhs))));
 
     sol = y;
