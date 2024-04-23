@@ -3,9 +3,8 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     m = round(beta * n);
     
     % Generate sparse random matrices A and M
-    A = sprandn(n, m, 0.15);
-    spy(A)
-    M = sprandn(n, n, 0.15);
+    A = sprand(n, m, 0.15, 0.9);
+    M = sprand(n, n, 0.15, 0.9);
     
     % Generate H
     H = M * M' + alpha * eye(n);

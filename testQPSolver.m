@@ -32,7 +32,7 @@ solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space'};
 
 % Define the problem sizes and beta values (start:step:stop)
 n_values = 100:100:1000;
-beta_values = 0.0:0.2:1.0;
+beta_values = 0.2:0.2:1.0;
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
@@ -52,10 +52,9 @@ for iter = 1:num_iterations
         for j = 1:length(beta_values)
             % Loop over the solvers
             for k = 1:length(solvers)
+                % Start the timer
+                tic;
                 if strcmp(solvers{k}, 'benchmark')
-                    % Start the timer
-                    tic;
-                    
                     % Call the standard solver function
                     [x, ~] = EqualityQPSolverLUdense(H, g, A, b);
                     
