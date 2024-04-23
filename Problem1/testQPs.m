@@ -4,6 +4,7 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     
     % Generate sparse random matrices A and M
     A = sprandn(n, m, 0.15);
+    spy(A)
     M = sprandn(n, n, 0.15);
     
     % Generate H
