@@ -39,13 +39,13 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
     
     % Formulate the KKT system
-    KKT_matrix = full([H, A; A', zeros(size(A', 1))]);
+    KKT_matrix = full([H, A; A', zeros(m,m)]);
     rhs = [-g; b];
 
     % Solve the system using dense LU factorization
@@ -80,20 +80,17 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    KKT_matrix = sparse([H, A; A', zeros(m, m)]);
     rhs = [-g; b];
 
-    % Convert KKT matrix to sparse format
-    KKT_sparse = sparse(KKT_matrix);
-    
     % Solve the system using sparse LU factorization
-    [L, U, P, Q] = lu(KKT_sparse);
+    [L, U, P, Q] = lu(KKT_matrix);
     y = Q * (U \ (L \ (P * rhs)));
     sol = y;
     
@@ -124,13 +121,13 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
     
     % Formulate the KKT system
-    KKT_matrix = full([H, A; A', zeros(size(A', 1))]);
+    KKT_matrix = full([H, A; A', zeros(m, m)]);
     rhs = [-g; b];
 
     % Solve the system using dense LDL factorization
@@ -165,13 +162,13 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', sparse(size(A', 1), size(A, 2))];
+    KKT_matrix = sparse([H, A; A', zeros(m, m)]);
     rhs = [-g; b];
 
     % LDL factorization
@@ -209,16 +206,14 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(size(A', 1))];
+    KKT_matrix = full([H, A; A', zeros(m, m)]);
     rhs = [-g; b];
-
-    KKT_matrix = full(KKT_matrix);
     
     % Compute the range-space decomposition of KKT_matrix
     [U, S, V] = svd(KKT_matrix);
@@ -262,7 +257,7 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     end
     
     % Check dimensions
-    [n, ~] = size(A);
+    [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end

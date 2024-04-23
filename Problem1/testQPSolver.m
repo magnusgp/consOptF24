@@ -54,8 +54,8 @@ for iter = 1:num_iterations
     disp(current_iteration)
     % Loop over the problem sizes
     for i = 1:length(n_values)
-        disp("n:")
-        disp(i)
+        % disp("n:")
+        % disp(i)
         % Loop over the beta values
         for j = 1:length(beta_values)
             % Loop over the solvers
