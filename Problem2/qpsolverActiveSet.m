@@ -1,11 +1,11 @@
-function [xopt,lambdaopt,Wset,it] = qpsolverActiveSet(H,g,A,b,x0)
+function [xopt,lambdaopt,X,Wset,it] = qpsolverActiveSet(H,g,A,b,x0)
 % QPSOLVERACTIVESET solves a convex QP with an active set algorithm
 %
 % Solves the qp
 %
 %   min 0.5 x' H x + g' x
 %    x
-%   s.t. A' x + b >= 0
+%   s.t. C' x + d >= 0
 %
 % using a primal active set method and a feasible initial point, x0.
 %
@@ -25,6 +25,8 @@ Wset = zeros(0,1);
 IWset = [1:m]';
 lambda = zeros(m,1);
 x = x0;
+
+X = [x];
 
 % QP data
 gk = H*x + g;
@@ -64,6 +66,7 @@ while ( ~KKTconditions && (it < maxit) );
         end
         % Take step, update data and working set
         x = x + alpha*p;
+        X = [X x];
         gk = H*x + g;
         c = A'*x + b;    
         if idc > 0
