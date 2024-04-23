@@ -40,7 +40,7 @@ beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
-num_iterations = 20;
+num_iterations = 10;
 current_iteration = 1;
 
 % Initialize matrices to store total runtimes
@@ -110,8 +110,6 @@ ylabel('Average Runtime (s)');
 title('Average Runtime vs. Beta Values');
 legend(solvers, 'Location', 'best');
 grid on;
-
-
 
 % TASK 1.6
 % % Define the range for b(1)

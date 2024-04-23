@@ -7,11 +7,14 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
 
     % Calculate m
     m = round(beta * n);
+
+    % Sparsity
+    s = 0.01;
     
     % Generate sparse random matrices A and M
-    A = sprandn(n, m, 0.15, 0.5);
+    A = sprandn(n, m, s, 0.5);
     
-    M = sprandn(n, n, 0.15, 0.5);
+    M = sprandn(n, n, s, 0.5);
     
     % Generate H
     H = M * M' + alpha * eye(n);
@@ -21,9 +24,9 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     while cond(full(KKT_matrix)) > tol
 
         % Generate sparse random matrices A and M
-        A = sprandn(n, m, 0.15);
+        A = sprandn(n, m, s, 0.5);
         
-        M = sprandn(n, n, 0.15);
+        M = sprandn(n, n, s, 0.5);
         
         % Generate H
         H = M * M' + alpha * eye(n);
