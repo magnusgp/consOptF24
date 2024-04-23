@@ -1,3 +1,7 @@
+clear
+clc
+close all
+
 rng('default') % For reproducibility
 
 % Define the matrices and vectors
@@ -31,16 +35,18 @@ solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space'};
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 100:100:1000;
-beta_values = 0.0:0.2:1.0;
+n_values = 10:100:500;
+beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
-num_iterations = 10;
+num_iterations = 20;
 current_iteration = 1;
 
 % Initialize matrices to store total runtimes
 total_runtimes = zeros(length(n_values), length(beta_values), length(solvers));
+
+% times = zeros(length(n_values),length(beta_values), length(solvers));
 
 % Loop over the number of iterations
 for iter = 1:num_iterations
@@ -48,13 +54,16 @@ for iter = 1:num_iterations
     disp(current_iteration)
     % Loop over the problem sizes
     for i = 1:length(n_values)
+        disp("n:")
+        disp(i)
         % Loop over the beta values
         for j = 1:length(beta_values)
             % Loop over the solvers
             for k = 1:length(solvers)
+                % Start the timer
+                tic;
+                
                 if strcmp(solvers{k}, 'benchmark')
-                    % Start the timer
-                    tic;
                     
                     % Call the standard solver function
                     [x, ~] = EqualityQPSolverLUdense(H, g, A, b);
@@ -62,9 +71,14 @@ for iter = 1:num_iterations
                     % Stop the timer and add to total runtime
                     total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
                 else
-                    % Call the testProblem function
-                    [x, ~] = testQPs(n_values(i), beta_values(j), 0.1, solvers{k});
                     
+                    % timefun = @() testQPs(n_values(i), beta_values(j), 100, solvers{k});
+                    % 
+                    % times(i,j,k) = timeit(timefun);
+                    
+                    % Call the testProblem function
+                    [x, ~] = testQPs(n_values(i), beta_values(j), 100, solvers{k});
+
                     % Stop the timer and add to total runtime
                     total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
                 end
@@ -74,8 +88,12 @@ for iter = 1:num_iterations
     current_iteration = current_iteration + 1;
 end
 
+%%
+
 % Calculate average runtimes
 average_runtimes = total_runtimes / num_iterations;
+
+% average_runtimes = times;
 
 figure;
 hold on;
