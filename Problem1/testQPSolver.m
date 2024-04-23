@@ -40,13 +40,11 @@ beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
-num_iterations = 20;
+num_iterations = 10;
 current_iteration = 1;
 
 % Initialize matrices to store total runtimes
 total_runtimes = zeros(length(n_values), length(beta_values), length(solvers));
-
-% times = zeros(length(n_values),length(beta_values), length(solvers));
 
 % Loop over the number of iterations
 for iter = 1:num_iterations
@@ -72,10 +70,6 @@ for iter = 1:num_iterations
                     total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
                 else
                     
-                    % timefun = @() testQPs(n_values(i), beta_values(j), 100, solvers{k});
-                    % 
-                    % times(i,j,k) = timeit(timefun);
-                    
                     % Call the testProblem function
                     [x, ~] = testQPs(n_values(i), beta_values(j), 100, solvers{k});
 
@@ -92,8 +86,6 @@ end
 
 % Calculate average runtimes
 average_runtimes = total_runtimes / num_iterations;
-
-% average_runtimes = times;
 
 figure;
 hold on;
@@ -118,8 +110,6 @@ ylabel('Average Runtime (s)');
 title('Average Runtime vs. Beta Values');
 legend(solvers, 'Location', 'best');
 grid on;
-
-
 
 % TASK 1.6
 % % Define the range for b(1)
