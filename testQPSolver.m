@@ -1,3 +1,5 @@
+rng('default') % For reproducibility
+
 % Define the matrices and vectors
 H = [5.0000 1.8600 1.2400 1.4800 -0.4600;
      1.8600 3.0000 0.4400 1.1200 0.5200;
@@ -23,91 +25,117 @@ b = [15;
 % Defining the solvers
 % WORKING SOLVERS: LUsparse, LUdense, LDLdense, LDLsparse, range-space
 % MISSING SOLVERS: null-space
-solvers = {'LUsparse', 'LUdense', 'LDLdense', 'LDLsparse', 'range-space'};
-% solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
+% solvers = {'LUsparse', 'LUsparse'};
+solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space'};
 
 % % TASK 1.4/1.5
 
-% Define the problem sizes and beta values
-n_values = 10:10:100;
-beta_values = 0.1:0.1:1.0;
+% Define the problem sizes and beta values (start:step:stop)
+n_values = 100:100:1000;
+beta_values = 0.0:0.2:1.0;
 
 % Initialize the solution and runtime matrices
-x_solutions = zeros(length(n_values), length(beta_values), length(solvers));
-runtimes = zeros(length(n_values), length(beta_values), length(solvers));
+% Define the number of iterations
+num_iterations = 10;
+current_iteration = 1;
 
-% Loop over the problem sizes
-for i = 1:length(n_values)
-    % Loop over the beta values
-    for j = 1:length(beta_values)
-        % Loop over the solvers
-        for k = 1:length(solvers)
-            % Start the timer
-            tic;
-            
-            % Call the testProblem function
-            [x, lambda] = testQPs(n_values(i), beta_values(j), 0.1, solvers{k});
-            
-            % Stop the timer and store the runtime
-            runtimes(i, j, k) = toc;
-            
-            % Store the solution
-            x_solutions(i, j, k) = x(1);
+% Initialize matrices to store total runtimes
+total_runtimes = zeros(length(n_values), length(beta_values), length(solvers));
+
+% Loop over the number of iterations
+for iter = 1:num_iterations
+    disp("Current iteration")
+    disp(current_iteration)
+    % Loop over the problem sizes
+    for i = 1:length(n_values)
+        % Loop over the beta values
+        for j = 1:length(beta_values)
+            % Loop over the solvers
+            for k = 1:length(solvers)
+                if strcmp(solvers{k}, 'benchmark')
+                    % Start the timer
+                    tic;
+                    
+                    % Call the standard solver function
+                    [x, ~] = EqualityQPSolverLUdense(H, g, A, b);
+                    
+                    % Stop the timer and add to total runtime
+                    total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
+                else
+                    % Call the testProblem function
+                    [x, ~] = testQPs(n_values(i), beta_values(j), 0.1, solvers{k});
+                    
+                    % Stop the timer and add to total runtime
+                    total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
+                end
+            end
         end
     end
+    current_iteration = current_iteration + 1;
 end
 
-% Plot the solutions and runtimes
-for k = 1:length(solvers)
-    figure;
-    % surf(n_values, beta_values, squeeze(x_solutions(:,:,k)));
-    % title(['Solutions for ', solvers{k}]);
-    % xlabel('Problem size n');
-    % ylabel('Number of constraints m = beta * n');
-    % zlabel('Solution x(1)');
-    
-    figure;
-    % surf(n_values, beta_values, squeeze(runtimes(:,:,k)));
-    surf(n_values, beta_values, log10(squeeze(runtimes(:,k))));
-    title(['Runtimes for ', solvers{k}]);
-    xlabel('Problem size n');
-    ylabel('Number of constraints m = beta * n');
-    zlabel('Runtime (seconds)');
-end
+% Calculate average runtimes
+average_runtimes = total_runtimes / num_iterations;
 
-% TASK 1.6
-% Define the range for b(1)
-b1_range = 8.5:0.1:18.68;
-
-% Initialize the solution matrix
-x_solutions = zeros(length(b1_range), length(solvers));
-
-% Loop over the range of b(1)
-for i = 1:length(b1_range)
-    % Update b(1)
-    b(1) = b1_range(i);
-    
-    % Loop over the solvers
-    for j = 1:length(solvers)
-        % Solve the problem using the current solver
-        [x,lambda] = EqualityQPSolver(H,g,A,b,solvers{j});
-
-        % Compute phi and store it
-        phi = 0.5 * x' * H * x + g' * x;
-        
-        % Store the solution
-        x_solutions(i,j) = phi;
-    end
-end
-
-% Plot the solutions
 figure;
 hold on;
-for j = 1:length(solvers)
-    plot(b1_range, x_solutions(:,j), '-o', 'DisplayName', solvers{j});
+for k = 1:length(solvers)
+    plot(n_values, squeeze(mean(average_runtimes(:,:,k), 2)), 'o-');
 end
 hold off;
-legend('Location', 'best', 'Interpreter', 'latex');
-xlabel('$b(1)$', 'Interpreter', 'latex');
-ylabel('$\phi(x)$', 'Interpreter', 'latex');
-title('Solution $\phi(x)$ for $b(1) \in [8.5, 18.68]$ using LUdense solver', 'Interpreter', 'latex');
+xlabel('Problem Size (n)');
+ylabel('Average Runtime (s)');
+title('Average Runtime vs. Problem Size');
+legend(solvers, 'Location', 'best');
+grid on;
+
+figure;
+hold on;
+for k = 1:length(solvers)
+    plot(beta_values, squeeze(mean(average_runtimes(:,:,k), 1)), 'o-');
+end
+hold off;
+xlabel('Beta Values');
+ylabel('Average Runtime (s)');
+title('Average Runtime vs. Beta Values');
+legend(solvers, 'Location', 'best');
+grid on;
+
+
+
+% TASK 1.6
+% % Define the range for b(1)
+% b1_range = 8.5:0.1:18.68;
+
+% % Initialize the solution matrix
+% x_solutions = zeros(length(b1_range), length(solvers));
+
+% % Loop over the range of b(1)
+% for i = 1:length(b1_range)
+%     % Update b(1)
+%     b(1) = b1_range(i);
+    
+%     % Loop over the solvers
+%     for j = 1:length(solvers)
+%         % Solve the problem using the current solver
+%         [x,lambda] = EqualityQPSolver(H,g,A,b,solvers{j});
+
+%         % Compute phi and store it
+%         phi = 0.5 * x' * H * x + g' * x;
+        
+%         % Store the solution
+%         x_solutions(i,j) = phi;
+%     end
+% end
+
+% % Plot the solutions
+% figure;
+% hold on;
+% for j = 1:length(solvers)
+%     plot(b1_range, x_solutions(:,j), '-o', 'DisplayName', solvers{j});
+% end
+% hold off;
+% legend('Location', 'best', 'Interpreter', 'latex');
+% xlabel('$b(1)$', 'Interpreter', 'latex');
+% ylabel('$\phi(x)$', 'Interpreter', 'latex');
+% title('Solution $\phi(x)$ for $b(1) \in [8.5, 18.68]$ using LUdense solver', 'Interpreter', 'latex');
