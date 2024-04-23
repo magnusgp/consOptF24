@@ -22,7 +22,7 @@ tic;
 QuadprogTime = toc;
 
 figure
-tiledlayout(4,2)
+tiledlayout("flow");
 PlotSolutionQP(xquadprog)
 
 sprintf("Quadprog \niter: %.0f \ntime: %.2f \n", output.iterations, QuadprogTime)
@@ -64,11 +64,11 @@ PlotSolutionQP(xIPPC)
 
 sprintf("Interior point w. predictor corrector \niter: %.0f \ntime: %.2f \n", itIPPC, IPPCTime)
 
-tic;
-predictorCorrector = false;
-[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
-IPTime = toc;
-
-PlotSolutionQP(xIP)
-
-sprintf("Interior point w.o. predictor corrector \niter: %.0f \ntime: %.2f \n", itIP, IPTime)
+% tic;
+% predictorCorrector = false;
+% [xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
+% IPTime = toc;
+% 
+% PlotSolutionQP(xIP)
+% 
+% sprintf("Interior point w.o. predictor corrector \niter: %.0f \ntime: %.2f \n", itIP, IPTime)

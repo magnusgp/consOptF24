@@ -52,3 +52,4 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     % disp('Lagrange multipliers lambda:');
     % disp(lambda_sol);
 end
+
