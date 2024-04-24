@@ -3,34 +3,38 @@ clc
 close all
 
 beta = 0.8;
-alpha = 100;
+alpha = 10;
 
-tol = 1e+05;
+% Sparsity
+s = 0.7;
 
-N = 10:10:100;
+N = 10:50:300;
 times = zeros(length(N),3);
 
+options =  optimset('Display','off');
+
 for i = 1:length(N)
+
+    disp(N(i))
     
     n = N(i);
     
     % Calculate m
     m = round(beta * n);
     
-    % Sparsity
-    s = 0.5;
-    
     % Generate sparse random matrices A and M
-    C = sprandn(n, m, s, 0.5);
+    C = sprandn(n, m, s, 1);
     
-    M = sprandn(n, n, s, 0.5);
+    M = sprandn(n, n, s, 1);
     
     % Generate H
     H = M * M' + alpha * eye(n);
     
-    while cond(H) > 10
+    while cond(H) > 5
+
+        disp(cond(H))
     
-        M = sprandn(n, n, s, 0.5);
+        M = sprandn(n, n, s, 1);
         
         % Generate H
         H = M * M' + alpha * eye(n);
@@ -49,21 +53,28 @@ for i = 1:length(N)
     z0 = ones(size(C,2),1);
     s0 = z0;
     
-    timefun = @() quadprog(H,g,-C',-d,[],[]);
+    disp("Quadprog")
+
+    timefun = @() quadprog(H,g,-C',-d,[],[],[],[],x0,options);
     times(i,1) = timeit(timefun);
-    % [xquadprog,fval,exitflag,output] = quadprog(H,g,-C',-d,[],[]);
-    
+    [~,~,exitflag,~] = quadprog(H,g,-C',-d,[],[]);
+    disp(exitflag)
+
+    disp("AS")
+
     timefun = @() qpsolverActiveSet(H,g,C,-d,x0);
     times(i,2) = timeit(timefun);
     % [xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0);
     
+    disp("IP")
+
     predictorCorrector = true;
     maxIter = 100;
-    tol = 1.0e-5;
+    tol = 1.0e-3;
     timefun = @() qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
     times(i,3) = timeit(timefun);
     % [xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
-    
+    % 
     % disp(norm(xquadprog-xAS,'inf'))
     % disp(norm(xquadprog-xIPPC,'inf'))
     % disp(norm(xAS-xIPPC,'inf'))

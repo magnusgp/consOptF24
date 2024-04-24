@@ -1,20 +1,23 @@
-function [x, lambda] = testQPs(n, beta, alpha, solver)
+function [x, lambda, t] = testQPs(n, beta, alpha, solver)
     % beta: amount of constraints
     % alpha: scales diagonal of H
 
     % KKT matrix condition tolerance
-    tol = 1e+05;
+    tol = 1e+03;
 
     % Calculate m
     m = round(beta * n);
 
     % Sparsity
-    s = 0.01;
+    s = 0.15;
+
+    % Reciprocal cond
+    r = 1;
     
     % Generate sparse random matrices A and M
-    A = sprandn(n, m, s, 0.5);
+    A = sprandn(n, m, s, r);
     
-    M = sprandn(n, n, s, 0.5);
+    M = sprandn(n, n, s, r);
     
     % Generate H
     H = M * M' + alpha * eye(n);
@@ -24,9 +27,9 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     while cond(full(KKT_matrix)) > tol
 
         % Generate sparse random matrices A and M
-        A = sprandn(n, m, s, 0.5);
+        A = sprandn(n, m, s, r);
         
-        M = sprandn(n, n, s, 0.5);
+        M = sprandn(n, n, s, r);
         
         % Generate H
         H = M * M' + alpha * eye(n);
@@ -42,10 +45,20 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     % Generate g and b
     g = H * x_init + A * lambda_init;
     b = A' * x_init;
+
+    switch solver
+        case 'LUdense'
+            H = full(H);
+            A = full(A);
+        case 'LDLdense'
+            H = full(H);
+            A = full(A);
+    end
     
     % Call the solver
+    tic;
     [x, lambda] = EqualityQPSolver(H, g, A, b, solver);
-    
+    t = toc;
     % Display the solution
     % disp('Solution x:');
     % disp(x_sol);

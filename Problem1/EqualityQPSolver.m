@@ -45,7 +45,7 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = full([H, A; A', zeros(m,m)]);
+    KKT_matrix = [H, A; A', zeros(m,m)];
     rhs = [-g; b];
 
     % disp("LUdense")
@@ -89,8 +89,11 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = sparse([H, A; A', zeros(m, m)]);
+    KKT_matrix = [H, A; A', sparse(m, m)];
     rhs = [-g; b];
+
+    % disp("LUsparse")
+    % disp(issparse(KKT_matrix))
 
     % Solve the system using sparse LU factorization
     [L, U, P, Q] = lu(KKT_matrix);
@@ -130,7 +133,7 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = full([H, A; A', zeros(m, m)]);
+    KKT_matrix = [H, A; A', zeros(m, m)];
     rhs = [-g; b];
 
     % disp("LDLdense")
@@ -174,9 +177,9 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = sparse([H, A; A', zeros(m, m)]);
+    KKT_matrix = [H, A; A', sparse(m, m)];
     rhs = [-g; b];
-
+    
     % disp("LDLsparse")
     % disp(issparse(KKT_matrix))
 
@@ -192,8 +195,6 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     lambda = sol(n+1:end);
 end
     
-                
-
 function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     % Solves the Equality Constrained Convex QP problem:
     %   min_x phi = 1/2 * x' * H * x + g' * x
@@ -244,7 +245,6 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     
     end
         
-
 function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     % Solves the Equality Constrained Convex QP problem:
     %   min_x phi = 1/2 * x' * H * x + g' * x

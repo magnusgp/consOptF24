@@ -35,12 +35,12 @@ solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space'};
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 10:100:500;
+n_values = 10:100:1000;
 beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
-num_iterations = 10;
+num_iterations = 5;
 current_iteration = 1;
 
 % Initialize matrices to store total runtimes
@@ -52,30 +52,20 @@ for iter = 1:num_iterations
     disp(current_iteration)
     % Loop over the problem sizes
     for i = 1:length(n_values)
-        % disp("n:")
-        % disp(i)
+        disp("n:")
+        disp(n_values(i))
         % Loop over the beta values
         for j = 1:length(beta_values)
             % Loop over the solvers
             for k = 1:length(solvers)
-                % Start the timer
-                tic;
                 
-                if strcmp(solvers{k}, 'benchmark')
-                    
-                    % Call the standard solver function
-                    [x, ~] = EqualityQPSolverLUdense(H, g, A, b);
-                    
-                    % Stop the timer and add to total runtime
-                    total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
-                else
-                    
-                    % Call the testProblem function
-                    [x, ~] = testQPs(n_values(i), beta_values(j), 100, solvers{k});
+                % Call the testProblem function
+                [x, ~, t] = testQPs(n_values(i), beta_values(j), 10, solvers{k});
 
-                    % Stop the timer and add to total runtime
-                    total_runtimes(i, j, k) = total_runtimes(i, j, k) + toc;
-                end
+                % Add to total runtime
+                total_runtimes(i, j, k) = total_runtimes(i, j, k) + t;
+
+                % Benchmark with quadprog
             end
         end
     end
