@@ -17,11 +17,6 @@ function [x,lambda] = EqualityQPSolver(H,g,A,b,solver)
     end
 end
 
-% Maybe remove checking eigenvalues to save time
-% Pretty expensive for large system probably
-% Maybe just assume H is symmetric and pos def? 
-% Or cheaper way to check
-
 % Define each solver function here
 function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     % Solves the Equality Constrained Convex QP problem:
@@ -39,9 +34,9 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -83,9 +78,9 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -127,9 +122,9 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -171,9 +166,9 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -216,9 +211,9 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -227,7 +222,7 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(m, m)];
+    KKT_matrix = full([H, A; A', sparse(m, m)]);
     rhs = [-g; b];
     
     % Compute the range-space decomposition of KKT_matrix
@@ -266,9 +261,9 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    % if ~isequal(H, H') || any(eig(H) <= 0)
-    %     error('H must be a positive definite matrix');
-    % end
+    if ~isequal(H, H') || any(eig(H) <= 0)
+        error('H must be a positive definite matrix');
+    end
     
     % Check dimensions
     [n, m] = size(A);
@@ -288,18 +283,18 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     Y = Q(:,1:m); % Range space assuming full row-rank of A'
     Z = Q(:,(m+1):end); % Null space
 
-    % Step 1: From second row in KKT system
+    % Step 1
     x_y = (A'*Y)\b;
 
-    % Step 2: From first row in KKT system
+    % Step 2
     R = chol(Z'*H*Z);
 
     x_z = R\(R'\(-Z'*H*Y*x_y+Z'*g));
     
-    % Step 3: Resolve x
+    % Step 3
     x = Y*x_y + Z*x_z;
 
-    % Step 4: Find lagrange multipliers
+    
     lambda = (Y'*A)\(Y'*H*x+Y'*g);
 
     % % Investigate dims of R, Q and g

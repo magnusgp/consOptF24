@@ -9,7 +9,7 @@ function [x, lambda, t] = testQPs(n, beta, alpha, solver)
     m = round(beta * n);
 
     % Sparsity
-    s = 0.15;
+    s = 0.01;
 
     % Reciprocal cond
     r = 1;
@@ -51,6 +51,9 @@ function [x, lambda, t] = testQPs(n, beta, alpha, solver)
             H = full(H);
             A = full(A);
         case 'LDLdense'
+            H = full(H);
+            A = full(A);
+        case 'range-space'
             H = full(H);
             A = full(A);
     end

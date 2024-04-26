@@ -26,16 +26,31 @@ A = [16.1000 1.0000;
 b = [15; 
     1];
 
+[x,lambda] = EqualityQPSolver(H,g,A,b,'LUdense');
+disp(x)
+[x,lambda] = EqualityQPSolver(H,g,A,b,'LUsparse');
+disp(x)
+[x,lambda] = EqualityQPSolver(H,g,A,b,'LDLdense');
+disp(x)
+[x,lambda] = EqualityQPSolver(H,g,A,b,'LDLsparse');
+disp(x)
+[x,lambda] = EqualityQPSolver(H,g,A,b,'range-space');
+disp(x)
+[x,lambda] = EqualityQPSolver(H,g,A,b,'null-space');
+disp(x)
+
+%%
+
 % Defining the solvers
 % WORKING SOLVERS: LUsparse, LUdense, LDLdense, LDLsparse, range-space
 % MISSING SOLVERS: null-space
 % solvers = {'LUsparse', 'LUsparse'};
-solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space'};
+solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
 
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 10:100:1000;
+n_values = 10:100:500;
 beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
@@ -78,6 +93,7 @@ end
 average_runtimes = total_runtimes / num_iterations;
 
 figure;
+subplot(1,2,1)
 hold on;
 for k = 1:length(solvers)
     plot(n_values, squeeze(mean(average_runtimes(:,:,k), 2)), 'o-');
@@ -89,7 +105,7 @@ title('Average Runtime vs. Problem Size');
 legend(solvers, 'Location', 'best');
 grid on;
 
-figure;
+subplot(1,2,2)
 hold on;
 for k = 1:length(solvers)
     plot(beta_values, squeeze(mean(average_runtimes(:,:,k), 1)), 'o-');
@@ -98,7 +114,6 @@ hold off;
 xlabel('Beta Values');
 ylabel('Average Runtime (s)');
 title('Average Runtime vs. Beta Values');
-legend(solvers, 'Location', 'best');
 grid on;
 
 % TASK 1.6
