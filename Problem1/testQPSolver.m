@@ -50,12 +50,12 @@ solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 10:100:500;
+n_values = 10:100:800;
 beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
-num_iterations = 5;
+num_iterations = 8;
 current_iteration = 1;
 
 % Initialize matrices to store total runtimes

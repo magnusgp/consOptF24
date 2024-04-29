@@ -17,6 +17,11 @@ function [x,lambda] = EqualityQPSolver(H,g,A,b,solver)
     end
 end
 
+% Maybe remove checking eigenvalues to save time
+% Pretty expensive for large system probably
+% Maybe just assume H is symmetric and pos def? 
+% Or cheaper way to check
+
 % Define each solver function here
 function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     % Solves the Equality Constrained Convex QP problem:
@@ -34,9 +39,9 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
@@ -78,9 +83,9 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
@@ -122,9 +127,9 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
@@ -166,9 +171,9 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
@@ -211,37 +216,44 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
+
+    L = chol(H);
+
+    K = (L')\A;
+    w = (L')\g;
+
     
-    % Formulate the KKT system
-    KKT_matrix = full([H, A; A', sparse(m, m)]);
-    rhs = [-g; b];
     
-    % Compute the range-space decomposition of KKT_matrix
-    [U, S, V] = svd(KKT_matrix);
-    
-    % Determine the rank of the KKT_matrix
-    rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
-    
-    % Extract relevant matrices from the decomposition
-    U1 = U(:, 1:rank_KKT);
-    V1 = V(:, 1:rank_KKT);
-    S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
-    
-    % Solve the system using the range-space factorization
-    sol = V1 * S1_inv * U1' * rhs;
-    
-    % Extract solution and Lagrange multiplier
-    x = sol(1:n);
-    lambda = sol(n+1:end);
+    % % Formulate the KKT system
+    % KKT_matrix = [H, A; A', zeros(m, m)];
+    % rhs = [-g; b];
+    % 
+    % % Compute the range-space decomposition of KKT_matrix
+    % [U, S, V] = svd(KKT_matrix);
+    % 
+    % % Determine the rank of the KKT_matrix
+    % rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
+    % 
+    % % Extract relevant matrices from the decomposition
+    % U1 = U(:, 1:rank_KKT);
+    % V1 = V(:, 1:rank_KKT);
+    % S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
+    % 
+    % % Solve the system using the range-space factorization
+    % sol = V1 * S1_inv * U1' * rhs;
+    % 
+    % % Extract solution and Lagrange multiplier
+    % x = sol(1:n);
+    % lambda = sol(n+1:end);
     
     end
         
@@ -261,9 +273,9 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     %   lambda: Lagrange multiplier (m x 1)
     
     % Check if H is positive definite
-    if ~isequal(H, H') || any(eig(H) <= 0)
-        error('H must be a positive definite matrix');
-    end
+    % if ~isequal(H, H') || any(eig(H) <= 0)
+    %     error('H must be a positive definite matrix');
+    % end
     
     % Check dimensions
     [n, m] = size(A);
@@ -283,18 +295,18 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     Y = Q(:,1:m); % Range space assuming full row-rank of A'
     Z = Q(:,(m+1):end); % Null space
 
-    % Step 1
+    % Step 1: From second row in KKT system
     x_y = (A'*Y)\b;
 
-    % Step 2
+    % Step 2: From first row in KKT system
     R = chol(Z'*H*Z);
 
     x_z = R\(R'\(-Z'*H*Y*x_y+Z'*g));
     
-    % Step 3
+    % Step 3: Resolve x
     x = Y*x_y + Z*x_z;
 
-    
+    % Step 4: Find lagrange multipliers
     lambda = (Y'*A)\(Y'*H*x+Y'*g);
 
     % % Investigate dims of R, Q and g

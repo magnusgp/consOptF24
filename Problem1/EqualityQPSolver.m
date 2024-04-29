@@ -225,28 +225,39 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
+
+    L = chol(H)';
+
+    K = L\A;
+    w = L\g;
+
+    M = chol(K'*K);
+
+    lambda = M\(M'\(K'*w+b));
+
+    x = (L')\(K*lambda-w);
     
-    % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(m, m)];
-    rhs = [-g; b];
-    
-    % Compute the range-space decomposition of KKT_matrix
-    [U, S, V] = svd(KKT_matrix);
-    
-    % Determine the rank of the KKT_matrix
-    rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
-    
-    % Extract relevant matrices from the decomposition
-    U1 = U(:, 1:rank_KKT);
-    V1 = V(:, 1:rank_KKT);
-    S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
-    
-    % Solve the system using the range-space factorization
-    sol = V1 * S1_inv * U1' * rhs;
-    
-    % Extract solution and Lagrange multiplier
-    x = sol(1:n);
-    lambda = sol(n+1:end);
+    % % Formulate the KKT system
+    % KKT_matrix = [H, A; A', zeros(m, m)];
+    % rhs = [-g; b];
+    % 
+    % % Compute the range-space decomposition of KKT_matrix
+    % [U, S, V] = svd(KKT_matrix);
+    % 
+    % % Determine the rank of the KKT_matrix
+    % rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
+    % 
+    % % Extract relevant matrices from the decomposition
+    % U1 = U(:, 1:rank_KKT);
+    % V1 = V(:, 1:rank_KKT);
+    % S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
+    % 
+    % % Solve the system using the range-space factorization
+    % sol = V1 * S1_inv * U1' * rhs;
+    % 
+    % % Extract solution and Lagrange multiplier
+    % x = sol(1:n);
+    % lambda = sol(n+1:end);
     
     end
         
