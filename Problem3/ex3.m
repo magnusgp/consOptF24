@@ -1,3 +1,4 @@
+
 % Assuming each p_d and p_g corresponds to a quantity of 1 unit
 % Sorting demand prices in descending order for the demand curve
 [sorted_p_d, ~] = sort(p_d, 'descend');
