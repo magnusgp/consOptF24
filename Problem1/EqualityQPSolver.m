@@ -50,7 +50,7 @@ function [x, lambda] = EqualityQPSolverLUdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(m,m)];
+    KKT_matrix = [H, -A; A', zeros(m,m)];
     rhs = [-g; b];
 
     % disp("LUdense")
@@ -94,7 +94,7 @@ function [x, lambda] = EqualityQPSolverLUsparse(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', sparse(m, m)];
+    KKT_matrix = [H, -A; A', sparse(m, m)];
     rhs = [-g; b];
 
     % disp("LUsparse")
@@ -138,7 +138,7 @@ function [x, lambda] = EqualityQPSolverLDLdense(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', zeros(m, m)];
+    KKT_matrix = [H, -A; A', zeros(m, m)];
     rhs = [-g; b];
 
     % disp("LDLdense")
@@ -182,7 +182,7 @@ function [x, lambda] = EqualityQPSolverLDLsparse(H, g, A, b)
     end
     
     % Formulate the KKT system
-    KKT_matrix = [H, A; A', sparse(m, m)];
+    KKT_matrix = [H, -A; A', sparse(m, m)];
     rhs = [-g; b];
     
     % disp("LDLsparse")
@@ -237,28 +237,6 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
 
     x = (L')\(K*lambda-w);
     
-    % % Formulate the KKT system
-    % KKT_matrix = [H, A; A', zeros(m, m)];
-    % rhs = [-g; b];
-    % 
-    % % Compute the range-space decomposition of KKT_matrix
-    % [U, S, V] = svd(KKT_matrix);
-    % 
-    % % Determine the rank of the KKT_matrix
-    % rank_KKT = sum(diag(S) > eps(S(1)) * max(size(S)));
-    % 
-    % % Extract relevant matrices from the decomposition
-    % U1 = U(:, 1:rank_KKT);
-    % V1 = V(:, 1:rank_KKT);
-    % S1_inv = diag(1./diag(S(1:rank_KKT, 1:rank_KKT)));
-    % 
-    % % Solve the system using the range-space factorization
-    % sol = V1 * S1_inv * U1' * rhs;
-    % 
-    % % Extract solution and Lagrange multiplier
-    % x = sol(1:n);
-    % lambda = sol(n+1:end);
-    
     end
         
 function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
@@ -286,10 +264,6 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     if size(H, 1) ~= n || size(H, 2) ~= n || numel(g) ~= n || numel(b) ~= size(A', 1)
         error('Dimensions of inputs are inconsistent');
     end
-    
-    % Formulate the KKT system
-    % KKT_matrix = [H, A; A', zeros(size(A', 1))];
-    % rhs = [-g; b];
 
     % Step 1: Find the range space and null space of A
     [Q, ~] = qr(A);
@@ -312,21 +286,5 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
 
     % Step 4: Find lagrange multipliers
     lambda = (Y'*A)\(Y'*H*x+Y'*g);
-
-    % % Investigate dims of R, Q and g
-    % 
-    % Qinvg = Q' * g;
-    % 
-    % % Step 2: Solve for x_R
-    % x_R = (R' \ (Qinvg));
-    % 
-    % % Step 3: Solve for x_N
-    % x_N = null_space_basis * (null_space_basis' * (b - H * x_R));
-    % 
-    % % Step 4: Combine x_R and x_N to get the solution x
-    % x = x_R + x_N;
-    % 
-    % % Step 5: Solve for lambda
-    % lambda = (H * x + g - A * x);
     
     end
