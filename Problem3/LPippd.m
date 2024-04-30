@@ -12,7 +12,7 @@ function [x,info,mu,lambda,iter] = LPippd(g,A,b,x)
 %              = false  : Not Converged
 
 % Created: 04.12.2007
-% Author : John Bagterp J�rgensen
+% Author : John Bagterp Jørgensen
 %          IMM, Technical University of Denmark
 
 %%
