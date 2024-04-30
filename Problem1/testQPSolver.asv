@@ -39,9 +39,6 @@ disp(x)
 [x,lambda] = EqualityQPSolver(H,g,A,b,'null-space');
 disp(x)
 
-x = quadprog(H,g,[],[],A',b);
-disp(x)
-
 %%
 
 % Defining the solvers
@@ -53,7 +50,7 @@ solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 10:100:800;
+n_values = 10:100:400;
 beta_values = linspace(0.1,1,5);
 
 % Initialize the solution and runtime matrices
@@ -121,13 +118,13 @@ grid on;
 
 %%
 
-% [n, m] = size(A);
-% 
-% dFdz = [H -A;A' zeros(m,m)];
-% 
-% dFdb = [zeros(length(b),length(b));-eye(length(b),length(b))];
-% 
-% dzdb = -dFdz\dFdb;
+[n, m] = size(A);
+
+dFdz = [H -A;A' zeros(m,m)];
+
+dFdb = [zeros(length(b),length(b)),-eye(length(b),length(b))];
+
+dzdb = -
 
 % TASK 1.6
 % Define the range for b(1)
