@@ -226,12 +226,16 @@ function [x, lambda] = EqualityQPSolverRangeSpace(H, g, A, b)
         error('Dimensions of inputs are inconsistent');
     end
 
-    L = chol(H);
+    L = chol(H)';
 
-    K = (L')\A;
-    w = (L')\g;
+    K = L\A;
+    w = L\g;
 
-    
+    M = chol(K'*K);
+
+    lambda = M\(M'\(K'*w+b));
+
+    x = (L')\(K*lambda-w);
     
     % % Formulate the KKT system
     % KKT_matrix = [H, A; A', zeros(m, m)];
@@ -326,52 +330,3 @@ function [x, lambda] = EqualityQPSolverNullSpace(H, g, A, b)
     % lambda = (H * x + g - A * x);
     
     end
-
-% function to test solvers
-function [x, lambda] = testQPs(n, beta, alpha, solver)
-    % Calculate m
-    m = round(beta * n);
-    
-    % Generate sparse random matrices A and M
-    A = sprandn(n, m, 0.15);
-    M = sprandn(n, n, 0.15);
-    
-    % Generate H
-    H = M * M' + alpha * eye(n);
-    
-    % Generate x and lambda
-    x_init = randn(n, 1);
-    lambda_init = randn(m, 1);
-    
-    % Generate g and b
-    g = H * x_init + A * lambda_init;
-    b = A' * x_init;
-    
-    % Call the solver
-    [x, lambda] = EqualityQPSolver(H, g, A, b, solver);
-    
-    % Display the solution
-    % disp('Solution x:');
-    % disp(x_sol);
-    % disp('Lagrange multipliers lambda:');
-    % disp(lambda_sol);
-end
-
-% Test the solvers
-n = 100;
-beta = 0.5;
-alpha = 0.1;
-
-% Test the LUdense solver
-disp('Testing LUdense solver');
-[x, lambda] = testQPs(n, beta, alpha, 'LUdense');
-% print
-disp(x);
-disp(lambda);
-
-% Test the LUsparse solver
-disp('Testing LUsparse solver');
-[x, lambda] = testQPs(n, beta, alpha, 'LUsparse');
-% print
-disp(x);
-disp(lambda);
