@@ -13,6 +13,8 @@ times = zeros(length(N),3);
 
 options =  optimset('Display','off');
 
+warning('off')
+
 for i = 1:length(N)
 
     disp(N(i))
@@ -70,9 +72,10 @@ for i = 1:length(N)
 
     predictorCorrector = true;
     maxIter = 100;
-    tol = 1.0e-3;
+    tol = 1.0e-2;
     timefun = @() qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
     times(i,3) = timeit(timefun);
+
     % [xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
     % 
     % disp(norm(xquadprog-xAS,'inf'))
@@ -90,3 +93,4 @@ plot(N,times(:,2),'-o')
 hold on
 plot(N,times(:,3),'-o')
 legend("Quadprog","Active set","Interior point")
+grid on
