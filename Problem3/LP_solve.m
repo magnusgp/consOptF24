@@ -43,3 +43,59 @@ disp('Number of iterations: ');
 disp(num_iter);
 
 % Post-processing steps for supply-demand curve and market clearing price can be added here
+% sum p_d and p_g to check if market is cleared
+assert(sum(p_d) == sum(p_g), 'Market not cleared');
+% display 
+disp('sum of p_d: ');
+disp(sum(p_d));
+disp('sum of p_g: ');
+disp(sum(p_g));
+
+% determine the market clearing price which is where p_d and p_g intersect 
+% sort p_d in descending order
+[sorted_p_d, ~] = sort(p_d, 'descend');
+cumulative_demand = cumsum(ones(size(sorted_p_d)));
+
+% sort p_g in ascending order
+[sorted_p_g, ~] = sort(p_g, 'ascend');
+cumulative_supply = cumsum(ones(size(sorted_p_g)));
+
+% Plotting the stairs plot for supply
+figure;
+stairs(cumulative_supply, sorted_p_g, 'LineWidth', 2);
+hold on;
+
+% Plotting the stairs plot for demand
+stairs(cumulative_demand, sorted_p_d, 'LineWidth', 2);
+
+% Adding labels and title
+xlabel('Quantity');
+ylabel('Price');
+title('Supply-Demand Curve');
+legend('Supply', 'Demand');
+
+% find the intersection of the two curves
+% find the index of the first element in sorted_p_d that is greater than sorted_p_g just look in the first 10 elements
+% this is the market clearing price
+for i = 1:10
+    if sorted_p_d(i) < sorted_p_g(i)
+        market_clearing_price = sorted_p_d(i);
+        break;
+    end
+end
+
+disp('Market clearing price: ');
+disp(market_clearing_price);
+
+
+% now solve with function [x,info,mu,lambda,iter] = LPippd(g,A,b,x) 
+% where g = f, A = [A_ineq; A_eq], b = [b_ineq; b_eq], x = [p_d; p_g]
+
+% Construct the input arguments for the function LPippd
+g = f;
+A = A_eq;
+b = b_eq;
+
+% Call the function LPippd
+[x,info,mu,lambda,iter] = LPippd(g,A,b,x);
+

@@ -21,8 +21,5 @@ ylabel('Price');
 title('Supply-Demand Curve');
 legend('Supply', 'Demand');
 
-% find the market clearing price i.e. where supply is equal to demand
-
-
 
 
