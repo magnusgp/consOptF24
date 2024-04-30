@@ -1,3 +1,7 @@
+% import solver functions from EqualityQPSolver.m
+
+
+
 function [x, lambda] = testQPs(n, beta, alpha, solver)
     % Calculate m
     m = round(beta * n);
@@ -26,3 +30,6 @@ function [x, lambda] = testQPs(n, beta, alpha, solver)
     % disp('Lagrange multipliers lambda:');
     % disp(lambda_sol);
 end
+
+% Test the solver
+testQPs(100, 0.5, 0.1, 'LUdense')
