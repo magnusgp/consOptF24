@@ -9,7 +9,7 @@ function [x, lambda, t] = testQPs(n, beta, alpha, solver)
     m = round(beta * n);
 
     % Sparsity
-    s = 0.01;
+    s = 0.15;
 
     % Reciprocal cond
     r = 1;
