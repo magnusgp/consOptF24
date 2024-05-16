@@ -1,4 +1,4 @@
-function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol,predictorCorrector)
+function [xopt,lambdaopt,X,it] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol,predictorCorrector)
 
     % Assume form
     % min f(x) = 1/2 x' H x + g' x
@@ -25,7 +25,7 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
 
     %% Compute starting values
 
-    % Compute rCres
+    % Compute residuals
 
     if isempty(A) % If no equality constraints
         rL = H*x+g-C*z;
@@ -65,9 +65,13 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
         s(i) = max(1,abs(s(i)+deltasaff(i)));
     end
 
+    disp(prod(s>0))
+    disp(prod(z>0))
+    disp(prod(C'*x>=d))
+
     %% Start iterations
     
-    % Compute rCres
+    % Compute residuals
 
     if isempty(A) % If no equality constraints
         rL = H*x+g-C*z;
@@ -79,10 +83,6 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
     
     rC = s+d-C'*x;
     rsz = s.*z;
-
-    rszres = [rsz];
-    rLres = [rL];
-    rCres = [rC];
 
     D = diag(z./s);
 
@@ -97,6 +97,10 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
     converged = norm(blkdiag(rL,rA,rC,mu),'inf') < tol;
 
     while ~converged && k < maxIter
+
+        disp("Iteration")
+        disp(k)
+        disp(prod(s>0))
 
         k = k + 1;
         
@@ -194,7 +198,7 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
         s = s + min(1,0.99*alphas)*deltas;
         z = z + min(1,0.99*alphaz)*deltaz;
         
-        % Compute rCres
+        % Compute residuals
 
         if isempty(A) % If no equality constraints
             rL = H*x+g-C*z;
@@ -206,10 +210,6 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
 
         rC = s+d-C'*x;
         rsz = s.*z;
-
-        rszres = [rszres rsz];
-        rLres = [rLres rL];
-        rCres = [rCres rC];
 
         D = diag(z./s);
 

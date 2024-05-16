@@ -1,4 +1,4 @@
-function [xopt,lambdaopt,X,Wset,it] = qpsolverActiveSet(H,g,A,b,x0)
+function [xopt,lambdaopt,X,Wset,it] = qpsolverActiveSet(H,g,A,b,x0,tol)
 % QPSOLVERACTIVESET solves a convex QP with an active set algorithm
 %
 % Solves the qp
@@ -12,14 +12,13 @@ function [xopt,lambdaopt,X,Wset,it] = qpsolverActiveSet(H,g,A,b,x0)
 % Syntax: [xopt,lambdaopt,Wset,it] = qpsolverActiveSet(H,g,A,b,x0) 
 
 % Tolerances hardcoded. Could be part of specifications
-tol = 1.0e-8;
 tolLx = tol;
 tolc = tol;
 tollambda = tol;
 tolp = tol;
 
 
-% Start with empthy working set
+% Start with empty working set
 [n,m] = size(A);
 Wset = zeros(0,1);
 IWset = [1:m]';
@@ -36,7 +35,6 @@ c = A'*x + b;                   % c(x) = A' x + b >= 0
 % Check if the initial point is optimal
 KKTstationarity = ( norm(nablaxL,'inf') < tolLx );
 KKTconditions =  KKTstationarity; % the other conditions satisfied 
-
 
 %% Main loop
 maxit = 100*(n+m);

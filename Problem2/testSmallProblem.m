@@ -38,7 +38,7 @@ predictorCorrector = true;
 predictorCorrector = false;
 [xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
-[xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0);
+[xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0,tol);
 
 sprintf('IPPC iter: %.0f \nIP iter: %.0f \nAS iter: %.0f',itIPPC,itIP,itAS)
 

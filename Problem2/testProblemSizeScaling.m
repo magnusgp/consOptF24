@@ -6,9 +6,9 @@ beta = 0.8;
 alpha = 10;
 
 % Sparsity
-s = 0.7;
+s = 0.5;
 
-N = 10:50:300;
+N = 10:50:350;
 times = zeros(length(N),3);
 
 options =  optimset('Display','off');
@@ -17,6 +17,7 @@ warning('off')
 
 for i = 1:length(N)
 
+    disp("Iteration")
     disp(N(i))
     
     n = N(i);
@@ -59,38 +60,45 @@ for i = 1:length(N)
 
     timefun = @() quadprog(H,g,-C',-d,[],[],[],[],x0,options);
     times(i,1) = timeit(timefun);
-    [~,~,exitflag,~] = quadprog(H,g,-C',-d,[],[]);
+    [xquadprog,~,exitflag,~] = quadprog(H,g,-C',-d,[],[]);
     disp(exitflag)
 
     disp("AS")
 
-    timefun = @() qpsolverActiveSet(H,g,C,-d,x0);
+    tol = 1.0e-8;
+    timefun = @() qpsolverActiveSet(H,g,C,-d,x0,tol);
     times(i,2) = timeit(timefun);
-    % [xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0);
+    [xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0,tol);
     
+    disp(itAS)
+
     disp("IP")
 
     predictorCorrector = true;
-    maxIter = 100;
-    tol = 1.0e-2;
+    maxIter = 200;
+    tol = 1.0e-8;
     timefun = @() qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
     times(i,3) = timeit(timefun);
+    [xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
-    % [xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
-    % 
-    % disp(norm(xquadprog-xAS,'inf'))
-    % disp(norm(xquadprog-xIPPC,'inf'))
-    % disp(norm(xAS-xIPPC,'inf'))
+    disp(itIPPC)
+    
+    disp(norm(xquadprog-xAS,'inf'))
+    disp(norm(xquadprog-xIPPC,'inf'))
+    disp(norm(xAS-xIPPC,'inf'))
 
 end
 
 %%
 
 figure;
-plot(N,times(:,1),'-o')
+plot(N,times(:,1),'-o',LineWidth=1.5)
 hold on
-plot(N,times(:,2),'-o')
+plot(N,times(:,2),'-o',LineWidth=1.5)
 hold on
-plot(N,times(:,3),'-o')
-legend("Quadprog","Active set","Interior point")
+plot(N,times(:,3),'-o',LineWidth=1.5)
+legend("Quadprog","Active set","Interior point",Location="northwest")
+xlabel("Problem size (N)")
+ylabel("CPU time (sec.)")
 grid on
+sgtitle("CPU time of quadprog, active set and interior point algorithms")
