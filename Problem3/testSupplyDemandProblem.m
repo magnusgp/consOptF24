@@ -73,6 +73,7 @@ xlabel('Quantity');
 ylabel('Price');
 title('Supply-Demand Curve linprog');
 legend('Supply', 'Demand');
+grid on
 
 % find the intersection of the two curves
 % find the index of the first element in sorted_p_d that is greater than sorted_p_g just look in the first 10 elements
@@ -185,3 +186,4 @@ xlabel('Quantity');
 ylabel('Price');
 title('Supply-Demand Curve Interior point');
 legend('Supply', 'Demand');
+grid on
