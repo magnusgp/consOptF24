@@ -1,4 +1,4 @@
-function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0)
+function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
     %          Primal simplex LP solver
     %
     %          min  g'*x
@@ -16,40 +16,34 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0)
     tol = 1.0e-16;
 
     % For handling degenerate states
-    eps = 0.01;
+    eps = 0.000001;
     perturbed = false;
+    bold = b;
 
-    Bset = find(x > tol);
-
-    if length(Bset) < n
-
-        additionalidx = length(find(abs(x) < tol));
-
-        neededidx = n - length(Bset);
-
-        if additionalidx >= neededidx
-
-            Bset = [Bset additionalidx(1:neededidx)];
-
-        else
-
-            Bset = 
-    
-    Nset = find(x == 0)';
-    Bset = setdiff(1:m,Nset);
+    % Bset = find(abs(x) > tol)';
+    % 
+    % if length(Bset) < n
+    % 
+    %     additionalidx = find(abs(x) < tol)';
+    % 
+    %     neededidx = n - length(Bset);
+    % 
+    %     Bset = [Bset additionalidx(1:neededidx)];
+    % 
+    % end
+    % 
+    % Nset = setdiff(1:m,Bset);
 
     B = A(:,Bset);
     N = A(:,Nset);
     
     %% Main loop
-    maxit = 10;
+    maxit = 50;
     
     converged = false;
     iter = 0;
     while iter < maxit && ~converged
         iter = iter + 1;
-
-        disp(size(B))
 
         gB = g(Bset);
         gN = g(Nset);
@@ -63,17 +57,15 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0)
         if sN >= 0
             converged = true;
         else
-            qidx = [];
-            Nidx = [];
-            for i = 1:length(Nset)
-                if sN(i) < tol
-                    Nidx = i;
-                    qidx = Nset(i);
-                end
-            end
+
+            sq = find(sN < 0);
+            
+
+            [~,Nidx] = min(sN);
+            qidx = Nset(Nidx);
 
             d = B\A(:,qidx);
-        
+
             if d <= 0
                 disp("Unbounded")
                 return
@@ -82,11 +74,13 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0)
             
                 [xqplus,pidx] = min(x(Bset(idx))./d(idx));
 
+                % disp(max(d))
+                % disp(min(x(Bset)))
+
                 % Handle degeneracy
-                if xqplus < tol && ~perturbed
+                if nnz(intersect(find(x(Bset) < tol), find(d < 0))) > 0 % && ~perturbed
                     disp("Perturb!")
                     perturbed = true;
-                    bold = b;
                     b = b + B*eps.^(1:n)';
                 end
 

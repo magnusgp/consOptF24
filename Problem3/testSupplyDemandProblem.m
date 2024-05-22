@@ -164,35 +164,17 @@ disp("here")
 disp(g1'*sol1)
 disp(g1'*sol1linprog)
 
-figure
-plot(sol1)
-figure
-plot(sol1linprog)
+g2 = [gbar;zeros(length(bbar),1)];
 
-phase2fun = [gbar;zeros(length(bbar),1)];
+x02 = sol1;
 
-phase2init = sol1;
+A2 = [Abar eye(length(bbar))];
 
-phase2sysmat = [Abar eye(length(bbar))];
+idx = 1:length(x02);
+Nset = idx(1:length(gbar));
+Bset = idx((length(gbar)+1):end);
 
-% [m,n] = size(Abar);
-% 
-% phase1A = [Abar ones(m,1) -eye(m) zeros(m);
-%            -Abar ones(m,1) zeros(m) -eye(m)];
-% 
-% phase1g = [zeros(n,1);1;ones(2*m,1)];
-% 
-% phase1b = [bbar;-bbar];
-% 
-% t0 = max(abs(bbar));
-% 
-% x0 = [zeros(n,1);t0;t0-bbar;t0+bbar];
-% 
-% [sol1,~,~] = lpsolverActiveSet(phase1g,phase1A,phase1b,x0);
-
-%%
-
-[xAStemp,XAStemp,iterAS] = lpsolverActiveSet(phase2fun,phase2sysmat,bbar,phase2init);
+[xAStemp,XAStemp,iterAS] = lpsolverActiveSet(g2,A2,bbar,x02,Bset,Nset);
 
 xAStemp = xAStemp(1:length(gbar));
 
