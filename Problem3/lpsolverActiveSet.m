@@ -3,7 +3,7 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
     %
     %          min  g'*x
     %           x
-    %          s.t. A x  = b      (Lagrange multiplier: lambda)
+    %          s.t. A x  = b      (Lagrange multiplier: mu)
     %                 x >= 0      (Lagrange multiplier: s)
     %
     
@@ -16,85 +16,70 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
     tol = 1.0e-16;
 
     % For handling degenerate states
-    eps = 0.1;
+    eps = 0.01;
     perturbed = false;
     bold = b;
 
-    % Bset = find(abs(x) > tol)';
-    % 
-    % if length(Bset) < n
-    % 
-    %     additionalidx = find(abs(x) < tol)';
-    % 
-    %     neededidx = n - length(Bset);
-    % 
-    %     Bset = [Bset additionalidx(1:neededidx)];
-    % 
-    % end
-    % 
-    % Nset = setdiff(1:m,Bset);
-
     B = A(:,Bset);
     N = A(:,Nset);
-    
+
     %% Main loop
-    maxit = 100;
+    maxit = 200;
+
+    x(Bset) = B\b;
     
     converged = false;
     iter = 0;
     while iter < maxit && ~converged
         iter = iter + 1;
 
-        gB = g(Bset);
-        gN = g(Nset);
+        mu = (B')\g(Bset);
 
-        x(Bset) = B\b;
+        % Compute reduced cost
+        lambdaN = g(Nset) - N'*mu;
 
-        lambda = B'\gB;
-
-        sN = gN - N'*lambda;
-
-        if sN >= 0
+        % Converged if reduced costs all nonnegative
+        if lambdaN >= 0
             converged = true;
         else
 
-            [~,Nidx] = min(sN);
-            qidx = Nset(Nidx);
+            s = find(lambdaN < 0,1,'first');
+            
+            is = Nset(s);
 
-            d = B\A(:,qidx);
+            h = B\A(:,is);
 
-            if d <= 0
+            if h <= 0
                 disp("Unbounded")
                 return
             else
-                idx = find(d > tol);
+                idx = find(h > tol);
             
-                [xqplus,pidx] = min(x(Bset(idx))./d(idx));
+                [alpha,j] = min(x(Bset(idx))./h(idx));
+                j = idx(j);
 
-                % disp(max(d))
-                % disp(min(x(Bset)))
+                % Is xB_i == 0 and d_i < 0 for any i?
+                degenerate = nnz(intersect(find(x(Bset) < tol), find(h < 0))) > 0;
 
                 % Handle degeneracy
-                if nnz(intersect(find(x(Bset) < tol), find(d < 0))) > 0 % && ~perturbed
-                    disp("Perturb!")
+                if degenerate && ~perturbed
                     perturbed = true;
                     b = b + B*eps.^(1:n)';
+                    x(Bset) = B\b;
                 end
 
-                x(Bset) = x(Bset) - xqplus*d;
-                x(Bset(pidx)) = 0;
-                x(Nset(Nidx)) = xqplus;
+                x(Bset) = x(Bset) - alpha*h;
+                x(Bset(j)) = 0;
+                x(Nset(s)) = alpha;
 
-                idxtemp = Bset(pidx);
+                idxtemp = Bset(j);
 
-                Bset(pidx) = Nset(Nidx);
+                Bset(j) = Nset(s);
 
-                Nset(Nidx) = idxtemp;
+                Nset(s) = idxtemp;
             
                 B = A(:,Bset);
                 N = A(:,Nset);
-
-                % disp(Bset)
 
                 Xmat = [Xmat x];
         
