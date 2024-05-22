@@ -9,10 +9,12 @@ restoredefaultpath
 % A'x = b
 % x >= 0
 
-% A = [2 1];
-% b = [7];
-% 
-% g = [5;1];
+A = [2 1];
+b = [7];
+
+g = [5;1];
+
+x0 = [1;0];
 
 A = [1 1 1 0;
      2 0.5 0 1];
@@ -21,8 +23,6 @@ b = [5;8];
 g = [-3;-2;0;0];
 
 x0 = [0;0;1;1];
-Bset = [3,4];
-Nset = [1,2];
 
 lb = zeros(length(g),1);
 
@@ -33,8 +33,7 @@ xlinprog = linprog(g,[],[],A,b,lb,[]);
 disp("linprog:")
 disp(xlinprog)
 
-% Must start away from boundary
-% x0 = [1;1];
+% Feasible starting point
 s0 = ones(length(x0),1);
 lambda0 = zeros(size(A,1),1);
 
@@ -45,16 +44,28 @@ tol = 10^-6;
 
 disp("IP:")
 disp(xIP)
-disp(iterIP)
 
-% Must start with basic feasible point
-% x0 = [1;0];
-
-[xAS,XAS,iterAS] = lpsolverActiveSet(g,A,b,x0,Bset,Nset);
+[xAS,XAS,iterAS,info] = lpsolverActiveSet(g,A,b,x0);
 
 disp("AS:")
 disp(xAS)
-disp(iterAS)
+
+disp("xB")
+disp(info.xB)
+disp("Bset")
+disp(info.Bset)
+disp("lambda")
+disp(info.lambda)
+disp("sN")
+disp(info.sN)
+disp("d")
+disp(info.d)
+disp("qidx")
+disp(info.qidx)
+disp("pidx")
+disp(info.pidx)
+disp("xqplus")
+disp(info.xqplus)
 
 %% Plot
 
@@ -87,8 +98,9 @@ colorbar
 
 hold on
 
-plot(X1(C1),X2(C1),'-',LineWidth=3,Color='k')
+plot(X1(C1),X2(C1),'-',LineWidth=1.5,Color='k')
 
-plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerSize',5,'MarkerFaceColor','r','linewidth',1.5)
-plot(XAS(1,:),XAS(2,:),'-o','color','m','MarkerSize',5,'MarkerFaceColor','m','linewidth',1.5)
-legend("Ax=b","Interior point","Active set",Location="northeast",fontsize=10)
+plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerSize',3,'MarkerFaceColor','r','linewidth',1.5)
+% plot(XIPPC(1,:),XIPPC(2,:),'-o','color','b','MarkerSize',3,'MarkerFaceColor','b','linewidth',1.5)
+plot(XAS(1,:),XAS(2,:),'-o','color','m','MarkerSize',3,'MarkerFaceColor','m','linewidth',1.5)
+% legend("Interior point w.o. corrector","Interior point w. corrector","Active set",Location="southwest")

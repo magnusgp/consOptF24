@@ -1,4 +1,4 @@
-function [x,lambda,s,iter,info,rcres,rbres,mures] = lpsolverInteriorPoint(g,A,b,x0,lambda0,s0,tol)
+function [x,lambda,s,iter,info,rcres,rbres,mures,Xmat] = lpsolverInteriorPoint(g,A,b,x0,lambda0,s0,tol)
     % LPIPPD   Primal-Dual Interior-Point LP Solver
     %
     %          min  g'*x
@@ -32,6 +32,7 @@ function [x,lambda,s,iter,info,rcres,rbres,mures] = lpsolverInteriorPoint(g,A,b,
     rcres = rc;
     rbres = rb;
     mures = mu;
+    Xmat = x;
 
     % Converged
     Converged = (norm(rc,'inf') <= tolc) && ...
@@ -141,6 +142,7 @@ function [x,lambda,s,iter,info,rcres,rbres,mures] = lpsolverInteriorPoint(g,A,b,
         rcres = [rcres rc];
         rbres = [rbres rb];
         mures = [mures mu];
+        Xmat = [Xmat x];
 
         % Converged
         Converged = (norm(rc,'inf') <= tolc) && ...

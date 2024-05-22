@@ -135,62 +135,39 @@ plotSupplyDemand(p_d,p_g)
 
 % Find basic feasible initial point
 
-E = zeros(length(bbar));
-
-for i = 1:length(bbar)
-    if bbar(i) >= 0
-        E(i,i) = 1;
-    else
-        E(i,i) = -1;
-    end
-end
-
-g1 = [zeros(length(gbar),1);ones(length(bbar),1)];
-
-x01 = [zeros(length(gbar),1);abs(bbar)];
-
-A1 = [Abar E];
-
-idx = 1:length(x01);
-Nset = idx(1:length(gbar));
-Bset = idx((length(gbar)+1):end);
-
-[sol1,~,iter] = lpsolverActiveSet(g1,A1,bbar,x01,Bset,Nset);
-
-options = optimoptions('linprog','Algorithm','dual-simplex');
-sol1linprog = linprog(g1, [], [], A1, bbar, zeros(length(g1),1), [], options);
-
-disp("here")
-disp(g1'*sol1)
-disp(g1'*sol1linprog)
-
-figure
-plot(sol1)
-figure
-plot(sol1linprog)
-
-phase2fun = [gbar;zeros(length(bbar),1)];
-
-phase2init = sol1;
-
-phase2sysmat = [Abar eye(length(bbar))];
-
-% [m,n] = size(Abar);
+% E = zeros(length(bbar));
 % 
-% phase1A = [Abar ones(m,1) -eye(m) zeros(m);
-%            -Abar ones(m,1) zeros(m) -eye(m)];
+% for i = 1:length(bbar)
+%     if bbar(i) >= 0
+%         E(i,i) = 1;
+%     else
+%         E(i,i) = -1;
+%     end
+% end
 % 
-% phase1g = [zeros(n,1);1;ones(2*m,1)];
+% phase1fun = [zeros(length(gbar),1);ones(length(bbar),1)];
 % 
-% phase1b = [bbar;-bbar];
+% phase1init = [zeros(length(gbar),1);abs(bbar)];
 % 
-% t0 = max(abs(bbar));
+% phase1sysmat = [Abar E];
 % 
-% x0 = [zeros(n,1);t0;t0-bbar;t0+bbar];
+% [phase1sol,~,~] = lpsolverActiveSet(phase1fun,phase1sysmat,bbar,phase1init);
 % 
-% [sol1,~,~] = lpsolverActiveSet(phase1g,phase1A,phase1b,x0);
+% disp(phase1fun'*phase1sol)
+% 
+% phase2fun = [gbar;zeros(length(bbar),1)];
+% 
+% phase2init = phase1sol;
+% 
+% phase2sysmat = [Abar eye(length(bbar))];
 
-%%
+[m,n] = size(Abar);
+
+x0 = zeros(length(gbar),1);
+s0 = zeros(length(bbar),1);
+t0 = max(abs(bbar));
+
+phase1g = [zeros(n,1);1;ones(2*m,1)];
 
 [xAStemp,XAStemp,iterAS] = lpsolverActiveSet(phase2fun,phase2sysmat,bbar,phase2init);
 
