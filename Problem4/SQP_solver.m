@@ -1,42 +1,5 @@
-function [x, lambda, t] = testQPs(n, beta, alpha, solver)
-    % beta: amount of constraints
-    % alpha: scales diagonal of H
+% Implements the SQP procedure for solving the Himmelblau Test Problem NLP
 
-    % KKT matrix condition tolerance
-    tol = 1e+03;
-
-    % Calculate m
-    m = round(beta * n);
-
-    % Sparsity
-    s = 0.15;
-
-    % Reciprocal cond
-    r = 1;
-    
-    % Generate sparse random matrices A and M
-    A = sprandn(n, m, s, r);
-    
-    M = sprandn(n, n, s, r);
-    
-    % Generate H
-    H = M * M' + alpha * eye(n);
-    
-    KKT_matrix = [H A;A' sparse(size(A', 1), size(A, 2))];
-
-    while cond(full(KKT_matrix)) > tol
-
-        % Generate sparse random matrices A and M
-        A = sprandn(n, m, s, r);
-        
-        M = sprandn(n, n, s, r);
-        
-        % Generate H
-        H = M * M' + alpha * eye(n);
-        
-        KKT_matrix = [H A;A' sparse(size(A', 1), size(A, 2))];
-
-    end
 function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
     % SQP_solver implements the SQP algorithm with line search.
     % Inputs:
@@ -62,6 +25,7 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
     objective = options.objective;
     constraints = options.constraints;
     hessian = options.hessian;
+    exitflag = 0;
 
     for k = 1:maxIter
         % Evaluate objective, constraints, and their gradients
@@ -91,6 +55,7 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
         xk_prev = xk;
         grad_f_prev = grad_f;
         xk = xk + alpha_k * pk;
+        disp(norm(pk));
 
         % Check for convergence
         if norm(pk) < tol
@@ -105,35 +70,3 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
     output.iterations = k;
     output.lambda = lambda_k;
 end
-
-    % Generate x and lambda
-    x_init = randn(n, 1);
-    lambda_init = randn(m, 1);
-    
-    % Generate g and b
-    g = H * x_init + A * lambda_init;
-    b = A' * x_init;
-
-    switch solver
-        case 'LUdense'
-            H = full(H);
-            A = full(A);
-        case 'LDLdense'
-            H = full(H);
-            A = full(A);
-        case 'range-space'
-            H = full(H);
-            A = full(A);
-    end
-    
-    % Call the solver
-    tic;
-    [x, lambda] = EqualityQPSolver(H, g, A, b, solver);
-    t = toc;
-    % Display the solution
-    % disp('Solution x:');
-    % disp(x_sol);
-    % disp('Lagrange multipliers lambda:');
-    % disp(lambda_sol);
-end
-
