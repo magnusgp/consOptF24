@@ -9,20 +9,28 @@ restoredefaultpath
 % A'x = b
 % x >= 0
 
-% A = [2 1];
-% b = [7];
+A = [2 1];
+b = [10];
+
+g = [5;1];
+
+x0AS = [5;0];
+Bset = [1];
+Nset = [2];
+
+x0IP = [1;1];
+
+% A = [1 1 1 0;
+%      2 0.5 0 1];
+% b = [5;8];
 % 
-% g = [5;1];
-
-A = [1 1 1 0;
-     2 0.5 0 1];
-b = [5;8];
-
-g = [-3;-2;0;0];
-
-x0 = [0;0;1;1];
-Bset = [3,4];
-Nset = [1,2];
+% g = [-3;-2;0;0];
+% 
+% x0AS = [0;0;1;1];
+% Bset = [3,4];
+% Nset = [1,2];
+% 
+% x0IP = [1,1,1,1];
 
 lb = zeros(length(g),1);
 
@@ -34,23 +42,20 @@ disp("linprog:")
 disp(xlinprog)
 
 % Must start away from boundary
-% x0 = [1;1];
-s0 = ones(length(x0),1);
+s0 = ones(length(x0IP),1);
 lambda0 = zeros(size(A,1),1);
 
 maxIter = 100;
 tol = 10^-6;
 
-[xIP,lambda,s,iterIP,info,rcres,rbres,mures,XIP] = lpsolverInteriorPoint(g,A,b,x0,lambda0,s0,tol);
+[xIP,lambda,s,iterIP,info,rcres,rbres,mures,XIP] = lpsolverInteriorPoint(g,A,b,x0IP,lambda0,s0,tol);
 
 disp("IP:")
 disp(xIP)
 disp(iterIP)
 
-% Must start with basic feasible point
-% x0 = [1;0];
-
-[xAS,XAS,iterAS] = lpsolverActiveSet(g,A,b,x0,Bset,Nset);
+maxiter = 100;
+[xAS,XAS,iterAS] = lpsolverActiveSet(g,A,b,x0AS,Bset,Nset,maxiter);
 
 disp("AS:")
 disp(xAS)
