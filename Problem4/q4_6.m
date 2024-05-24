@@ -28,12 +28,12 @@ x2 = linspace(-5, 5, 100);
 F = (X1.^2 + X2 - 11).^2 + (X1 + X2.^2 - 7).^2;
 
 % Constraints
-C1 = (X1 - 2).^2 - X2;   % C1 >= 0 (feasible region is above this curve)
+C1 = (X1 + 2).^2 - X2;   % C1 >= 0 (feasible region is above this curve)
 C2 = -4*X1 + 10*X2;    % C2 >= 0 (feasible region is above this curve)
 
 % Plot the objective function contour
 figure;
-contour(X1, X2, F, 50);
+contour(X1, X2, F, 100);
 hold on;
 
 % Plot the optimal point
