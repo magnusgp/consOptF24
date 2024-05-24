@@ -55,7 +55,7 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
         xk_prev = xk;
         grad_f_prev = grad_f;
         xk = xk + alpha_k * pk;
-        disp(norm(pk));
+        % disp(norm(pk));
 
         % Check for convergence
         if norm(pk) < tol

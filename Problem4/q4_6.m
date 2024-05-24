@@ -1,5 +1,5 @@
 % Initial guess
-x0 = [0, 0.5];
+x0 = [2, 3];
 options.objective = @objective_function;
 options.constraints = @constraints_function;
 % options.hessian = 'BFGS'; % or @hessian_function for analytical Hessian
@@ -20,6 +20,54 @@ disp('Exit Flag:');
 disp(exitflag);
 disp('Output:');
 disp(output);
+
+% Plot the objective function
+x1 = linspace(-5, 5, 100);
+x2 = linspace(-5, 5, 100);
+[X1, X2] = meshgrid(x1, x2);
+F = (X1.^2 + X2 - 11).^2 + (X1 + X2.^2 - 7).^2;
+
+% Constraints
+C1 = (X1 - 2).^2 - X2;   % C1 >= 0 (feasible region is above this curve)
+C2 = -4*X1 + 10*X2;    % C2 >= 0 (feasible region is above this curve)
+
+% Plot the objective function contour
+figure;
+contour(X1, X2, F, 50);
+hold on;
+
+% Plot the optimal point
+% Ensure you define x_opt somewhere in your script with the optimal values
+plot(x_opt(1), x_opt(2), 'ro');
+
+% Plot the constraint boundaries
+contour(X1, X2, C1, [0, 0], 'r', 'LineWidth', 2);
+contour(X1, X2, C2, [0, 0], 'b', 'LineWidth', 2);
+
+% Shade the infeasible regions
+% For C1 < 0 (infeasible region is below the red curve)
+infeasible_C1 = C1 == 0;
+% For C2 < 0 (infeasible region is below the blue curve)
+infeasible_C2 = C2 < 0;
+% Combine both infeasible regions
+infeasible = infeasible_C1 | infeasible_C2;
+
+% Convert logical matrix to numeric
+% infeasible_numeric = double(infeasible);
+
+% % Plot the infeasible region
+% h = pcolor(X1, X2, infeasible);
+% set(h, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Adjust transparency
+
+% % Set colormap for shading (gray color for infeasible regions)
+% colormap([1 1 1; 0.8 0.8 0.8]); % White for feasible, gray for infeasible
+
+% Axis labels and title
+xlabel('x1');
+ylabel('x2');
+title('Himmelblau''s Function with Constraints');
+hold off;
+
 
 function [f, grad_f] = objective_function(x)
     % Define your objective function and its gradient here
