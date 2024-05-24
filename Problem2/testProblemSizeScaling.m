@@ -9,7 +9,7 @@ alpha = 10;
 s = 0.5;
 
 N = 10:50:350;
-times = zeros(length(N),3);
+times = zeros(length(N),4);
 
 options =  optimset('Display','off');
 
@@ -72,7 +72,7 @@ for i = 1:length(N)
     
     disp(itAS)
 
-    disp("IP")
+    disp("IPPC")
 
     predictorCorrector = true;
     maxIter = 200;
@@ -82,10 +82,21 @@ for i = 1:length(N)
     [xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
     disp(itIPPC)
+
+    disp("IP")
+
+    predictorCorrector = false;
+    maxIter = 200;
+    tol = 1.0e-8;
+    timefun = @() qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
+    times(i,4) = timeit(timefun);
+    [xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
+
+    disp(itIP)
     
     disp(norm(xquadprog-xAS,'inf'))
     disp(norm(xquadprog-xIPPC,'inf'))
-    disp(norm(xAS-xIPPC,'inf'))
+    disp(norm(xquadprog-xIP,'inf'))
 
 end
 
@@ -97,7 +108,9 @@ hold on
 plot(N,times(:,2),'-o',LineWidth=1.5)
 hold on
 plot(N,times(:,3),'-o',LineWidth=1.5)
-legend("Quadprog","Active set","Interior point",Location="northwest")
+hold on
+plot(N,times(:,4),'-o',LineWidth=1.5)
+legend("Quadprog","AS","IPPC","IP",Location="northwest")
 xlabel("Problem size (N)")
 ylabel("CPU time (sec.)")
 grid on

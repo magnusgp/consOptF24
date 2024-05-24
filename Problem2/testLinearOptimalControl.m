@@ -24,7 +24,7 @@ QuadprogTime = toc;
 PlotSolutionQP(xquadprog)
 sgtitle("Quadprog")
 
-sprintf("Quadprog \niter: %.0f \ntime: %.2f \n", output.iterations, QuadprogTime)
+% sprintf("Quadprog \niter: %.0f \ntime: %.2f \n", output.iterations, QuadprogTime)
 
 x0 = lb;
 
@@ -47,7 +47,7 @@ ASTime = toc;
 PlotSolutionQP(xAS)
 sgtitle("Active set")
 
-sprintf("Active set \niter: %.0f \ntime: %.2f \n", itAS, ASTime)
+% sprintf("Active set \niter: %.0f \ntime: %.2f \n", itAS, ASTime)
 
 x0 = 50*ones(length(g),1);
 y0 = [];
@@ -65,7 +65,7 @@ IPPCTime = toc;
 PlotSolutionQP(xIPPC)
 sgtitle("Interior point w. predictor corrector")
 
-sprintf("Interior point w. predictor corrector \niter: %.0f \ntime: %.2f \n", itIPPC, IPPCTime)
+% sprintf("Interior point w. predictor corrector \niter: %.0f \ntime: %.2f \n", itIPPC, IPPCTime)
 
 tic;
 predictorCorrector = false;
@@ -75,7 +75,7 @@ IPTime = toc;
 PlotSolutionQP(xIP)
 sgtitle("Interior point w.o. predictor corrector")
 
-sprintf("Interior point w.o. predictor corrector \niter: %.0f \ntime: %.2f \n", itIP, IPTime)
+% sprintf("Interior point w.o. predictor corrector \niter: %.0f \ntime: %.2f \n", itIP, IPTime)
 
 %%
 
@@ -99,3 +99,17 @@ ylabel("$||r_{C}||_2$")
 grid on
 title("$r_C$")
 sgtitle("Residuals w.r.t. iterations")
+
+disp("Max error, iter and time of IP:")
+disp(max(abs(xIPPC-xquadprog)))
+disp(itIPPC)
+disp(IPPCTime)
+
+disp("Max error, iter and time of AS:")
+disp(max(abs(xAS-xquadprog)))
+disp(itAS)
+disp(ASTime)
+
+disp("Iter and time of quadprog")
+disp(output.iterations)
+disp(QuadprogTime)

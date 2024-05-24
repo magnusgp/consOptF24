@@ -8,7 +8,7 @@ alpha = 10;
 % Sparsity
 s = 0.9;
 
-N = 10:50:350;
+N = 10:50:400;
 times = zeros(length(N),3);
 
 options =  optimset('Display','off');
@@ -47,7 +47,7 @@ for i = 1:length(N)
     disp("Linprog")
 
     lb = zeros(n,1);
-    options = optimoptions('linprog','Algorithm','dual-simplex','Display','off');
+    options = optimoptions('linprog','Display','off');
     timefun = @() linprog(g, [], [], A, b, lb, [], options);
     times(i,1) = timeit(timefun);
 
@@ -79,7 +79,6 @@ for i = 1:length(N)
     disp("Differences")
     disp(norm(xlinprog-xAS,'inf'))
     disp(norm(xlinprog-xIP,'inf'))
-    disp(norm(xAS-xIP,'inf'))
 
 end
 

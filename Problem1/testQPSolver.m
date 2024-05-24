@@ -45,9 +45,6 @@ disp(x)
 %%
 
 % Defining the solvers
-% WORKING SOLVERS: LUsparse, LUdense, LDLdense, LDLsparse, range-space
-% MISSING SOLVERS: null-space
-% solvers = {'LUsparse', 'LUsparse'};
 solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
 
 % % TASK 1.4/1.5
