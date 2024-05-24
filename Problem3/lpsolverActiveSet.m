@@ -1,4 +1,4 @@
-function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
+function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset,maxiter)
     %          Primal simplex LP solver
     %
     %          min  g'*x
@@ -16,7 +16,7 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
     tol = 1.0e-16;
 
     % For handling degenerate states
-    eps = 0.01;
+    eps = 0.001;
     perturbed = false;
     bold = b;
 
@@ -24,13 +24,12 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
     N = A(:,Nset);
 
     %% Main loop
-    maxit = 200;
 
-    x(Bset) = B\b;
+    % x(Bset) = B\b;
     
     converged = false;
     iter = 0;
-    while iter < maxit && ~converged
+    while iter < maxiter && ~converged
         iter = iter + 1;
 
         mu = (B')\g(Bset);
@@ -43,35 +42,35 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
             converged = true;
         else
 
-            s = find(lambdaN < 0,1,'first');
-            
-            is = Nset(s);
+            s = find(lambdaN < 0,1,'last');
 
-            h = B\A(:,is);
+            h = B\A(:,Nset(s));
 
             if h <= 0
                 disp("Unbounded")
                 return
             else
-                idx = find(h > tol);
-            
+                % Find step size
+                idx = find(h > 0);
                 [alpha,j] = min(x(Bset(idx))./h(idx));
                 j = idx(j);
 
-                % Is xB_i == 0 and d_i < 0 for any i?
+                % Check if xB_i == 0 and h_i < 0 for any i
                 degenerate = nnz(intersect(find(x(Bset) < tol), find(h < 0))) > 0;
 
-                % Handle degeneracy
+                % Handle degeneracy by perturbing rhs
                 if degenerate && ~perturbed
                     perturbed = true;
                     b = b + B*eps.^(1:n)';
                     x(Bset) = B\b;
                 end
 
+                % Compute step
                 x(Bset) = x(Bset) - alpha*h;
                 x(Bset(j)) = 0;
                 x(Nset(s)) = alpha;
 
+                % Change B and N sets
                 idxtemp = Bset(j);
 
                 Bset(j) = Nset(s);
@@ -82,7 +81,7 @@ function [x,Xmat,iter] = lpsolverActiveSet(g,A,b,x0,Bset,Nset)
                 N = A(:,Nset);
 
                 Xmat = [Xmat x];
-        
+
             end
         end
     end

@@ -1,4 +1,4 @@
-function plotSupplyDemand(p_d,p_g)
+function plotSupplyDemand(p_d,p_g,titlestring)
     
     % Determine the market clearing price which is where p_d and p_g intersect 
     % sort p_d in descending order
@@ -10,7 +10,6 @@ function plotSupplyDemand(p_d,p_g)
     cumulative_supply = cumsum(ones(size(sorted_p_g)));
     
     % Plotting the stairs plot for supply
-    figure;
     stairs(cumulative_supply, sorted_p_g, 'LineWidth', 2);
     hold on;
     
@@ -19,7 +18,7 @@ function plotSupplyDemand(p_d,p_g)
     
     xlabel('Quantity');
     ylabel('Price');
-    title('Supply-Demand Curve');
+    title(sprintf('%s\n',titlestring));
     legend('Supply', 'Demand');
     grid on
     

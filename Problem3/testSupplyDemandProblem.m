@@ -1,6 +1,8 @@
 clear
 clc
 close all
+set(0,'defaultTextInterpreter','latex');
+set(groot,'defaultAxesFontSize',16)
 
 % Load system
 
@@ -32,6 +34,8 @@ bbar = [b;lb;ub];
 
 gbar = [g;-g;zeros(n,1);zeros(n,1)];
 
+[M, N] = size(Abar);
+
 %% Linprog
 
 % Solve the linear program using the dual-simplex algorithm
@@ -43,65 +47,73 @@ t = toc;
 p_d = xlinprog(1:length(U));
 p_g = xlinprog(length(U)+1:end);
 
-% get number of iterations 
-num_iter = output.iterations;
-
-% Display the results
-disp('The optimal demand prices, p_d, are:');
-disp(p_d);
-disp('The optimal generation prices, p_g, are:');
-disp(p_g);
-
-% display cpu time and number of iterations
-disp('CPU time: ');
-disp(t);
-disp('Number of iterations: ');
-disp(num_iter);
-
-% Post-processing steps for supply-demand curve and market clearing price can be added here
-% sum p_d and p_g to check if market is cleared
-assert(sum(p_d) == sum(p_g), 'Market not cleared');
-% display 
-disp('sum of p_d: ');
-disp(sum(p_d));
-disp('sum of p_g: ');
-disp(sum(p_g));
-
-plotSupplyDemand(p_d,p_g)
-
 %% Interior point
-
-% Finding initial point
-
-xtilde = Abar'*inv(Abar*Abar')*bbar;
-lambdatilde = inv(Abar*Abar')*Abar*gbar;
-stilde = gbar - Abar'*lambdatilde;
-
-deltax = max([-(3/2)*min(xtilde),0]);
-deltas = max([-(3/2)*min(stilde),0]);
-
-e = ones(length(xtilde),1);
-
-xIP = xtilde + deltax*e;
-shat = stilde + deltas*e;
-
-deltaxhat = 0.5*(xIP'*shat)/(e'*shat);
-deltashat = 0.5*(xIP'*shat)/(e'*xIP);
-
-x0 = xIP + deltaxhat*e;
-lambda0 = lambdatilde;
-s0 = shat + deltashat*e;
 
 % Solving
 
 tol = 1.0e-9;
-[xIPtemp,lambda,s,iterIP,info,rcres,rbres,mures] = lpsolverInteriorPoint(gbar,Abar,bbar,x0,lambda0,s0,tol);
+tic;
+[xIPtemp,lambda,s,iterIP,info,rcres,rbres,mures] = lpsolverInteriorPoint(gbar,Abar,bbar,tol);
+tIP = toc;
 
 xIP = xIPtemp(1:n)-xIPtemp((n+1):(2*n));
 
-disp("Max error:")
-disp(max(abs(xIP-xlinprog)))
+% Extract the solution for p_d and p_g from the result xlinprog
+p_dIS = xIP(1:length(U));
+p_gIS = xIP(length(U)+1:end);
 
+%% Active set
+
+% Find basic feasible initial point
+% Phase 1
+
+tic;
+A1 = [Abar ones(M,1) -eye(M) zeros(M);
+      -Abar ones(M,1) zeros(M) -eye(M)];
+
+b1 = [bbar;-bbar];
+
+g1 = [zeros(N,1);1;zeros(2*M,1)];
+
+t0 = max(abs(bbar));
+
+x01 = [zeros(N,1);t0;t0-bbar;t0+bbar];
+
+Bset1 = find(x01 > 0);
+Nset1 = setdiff(1:length(x01),Bset1);
+
+maxiter = 1000;
+[sol1,~,iter1] = lpsolverActiveSet(g1,A1,b1,x01,Bset1,Nset1,maxiter);
+
+% Phase 2
+
+x0 = sol1(1:N);
+
+Bset = ((N+1-M):N)';
+Nset = setdiff(1:length(x0),Bset);
+
+[xAStemp,~,iterAS] = lpsolverActiveSet(gbar,Abar,bbar,x0,Bset,Nset,maxiter);
+tAS = toc;
+
+xAS = xAStemp(1:n)-xAStemp((n+1):(2*n));
+
+% Extract the solution for p_d and p_g from the result xlinprog
+p_dAS = xAS(1:length(U));
+p_gAS = xAS(length(U)+1:end);
+
+%% Plotting
+
+figure
+subplot(1,3,1)
+plotSupplyDemand(p_d,p_g,'Supply-demand curves with linprog \newline')
+
+subplot(1,3,2)
+plotSupplyDemand(p_dAS,p_gAS,'Supply-demand curves with AS \newline')
+
+subplot(1,3,3)
+plotSupplyDemand(p_dIS,p_gIS,'Supply-demand curves with IP \newline')
+
+% Residuals from IP
 figure
 subplot(1,3,1)
 plot(vecnorm(rcres,2),'-o',LineWidth=1.5)
@@ -115,7 +127,7 @@ plot(vecnorm(rbres,2,1),'-o',LineWidth=1.5)
 xlabel("Iterations")
 ylabel("$||r_{b}||_2$")
 grid on
-title("$r_b$")
+title("$r_b$",Interpreter="latex")
 
 subplot(1,3,3)
 plot(mures,'-o',LineWidth=1.5)
@@ -125,68 +137,16 @@ grid on
 title("$\mu$")
 sgtitle("Residuals w.r.t. iterations")
 
-% Extract the solution for p_d and p_g from the result xlinprog
-p_d = xIP(1:length(U));
-p_g = xIP(length(U)+1:end);
+disp("Max error, iter and time of IP:")
+disp(max(abs(xIP-xlinprog)))
+disp(iterIP)
+disp(tIP)
 
-plotSupplyDemand(p_d,p_g)
-
-%% Active set
-
-% Find basic feasible initial point
-
-E = zeros(length(bbar));
-
-for i = 1:length(bbar)
-    if bbar(i) >= 0
-        E(i,i) = 1;
-    else
-        E(i,i) = -1;
-    end
-end
-
-g1 = [zeros(length(gbar),1);ones(length(bbar),1)];
-
-x01 = [zeros(length(gbar),1);abs(bbar)];
-
-A1 = [Abar E];
-
-idx = 1:length(x01);
-Nset = idx(1:length(gbar));
-Bset = idx((length(gbar)+1):end);
-
-[sol1,~,iter] = lpsolverActiveSet(g1,A1,bbar,x01,Bset,Nset);
-
-options = optimoptions('linprog','Algorithm','dual-simplex');
-sol1linprog = linprog(g1, [], [], A1, bbar, zeros(length(g1),1), [], options);
-
-disp("here")
-disp(g1'*sol1)
-disp(g1'*sol1linprog)
-
-g2 = [gbar;zeros(length(bbar),1)];
-
-x02 = sol1;
-
-A2 = [Abar eye(length(bbar))];
-
-idx = 1:length(x02);
-Nset = idx(1:length(gbar));
-Bset = idx((length(gbar)+1):end);
-
-[xAStemp,XAStemp,iterAS] = lpsolverActiveSet(g2,A2,bbar,x02,Bset,Nset);
-
-xAStemp = xAStemp(1:length(gbar));
-
-xAS = xAStemp(1:n)-xAStemp((n+1):(2*n));
-
-disp("Max error:")
+disp("Max error, iter and time of AS:")
 disp(max(abs(xAS-xlinprog)))
+disp(iterAS)
+disp(tAS)
 
-%%
-
-% Extract the solution for p_d and p_g from the result xlinprog
-p_d = xAS(1:length(U));
-p_g = xAS(length(U)+1:end);
-
-plotSupplyDemand(p_d,p_g)
+disp("Iter and time of linprog")
+disp(output.iterations)
+disp(t)
