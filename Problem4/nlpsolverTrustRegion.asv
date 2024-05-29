@@ -1,0 +1,44 @@
+function [x] = nlpsolverTrustRegion(x0,s0,df,ddf,AE,AI,ddL)
+    
+    % len(s) = ni
+    % len(y) = ne
+    % len(z) = ni
+
+    % Getting dimensions
+    [ne,me] = size(AE(0));
+    [ni,mi] = size(AI(0));
+
+    x = x0;
+    s = s0;
+
+    % Compute initial y and z (19.37)
+
+    Ahat = [AE(x) zeros(ne,mi);
+            AI(x) -diag(s)];
+
+
+    sol = (Ahat*Ahat')\Ahat*[df(x);-mu*ones(ni,1)];
+    
+    y = sol(1:ne);
+    z = sol((ne+1):end);
+
+    % Set parameters
+    tau = 0.5;
+    eta = 0.005;
+    rho = 0.5;
+    k = 0;
+
+    while E(x,s,y,z,0) > epsilon
+        while E(x,s,y,z,tau) > tau
+
+            Bk = ddL(x);
+            
+            symat = [Bk zeros(ni,mi) AE(x) AI(x);
+                     zeros(ni,mi) diag(z./s) zeros(ni,me) zeros(ni,mi);
+                     AE(x)' zer]
+
+        end
+    end
+
+
+end
