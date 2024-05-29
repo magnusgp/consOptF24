@@ -1,5 +1,5 @@
 % Initial guess
-x0 = [-4; 1];
+x0 = [1;0.5];
 options.objective = @objective_function;
 options.constraints = @constraints_function;
 % options.hessian = 'BFGS'; % or @hessian_function for analytical Hessian
