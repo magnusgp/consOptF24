@@ -45,16 +45,15 @@ disp(x)
 %%
 
 % Defining the solvers
-% WORKING SOLVERS: LUsparse, LUdense, LDLdense, LDLsparse, range-space
-% MISSING SOLVERS: null-space
-% solvers = {'LUsparse', 'LUsparse'};
 solvers = {'LUdense', 'LUsparse', 'LDLdense', 'LDLsparse', 'range-space', 'null-space'};
 
 % % TASK 1.4/1.5
 
 % Define the problem sizes and beta values (start:step:stop)
-n_values = 10:100:800;
-beta_values = linspace(0.1,1,5);
+% n_values = 10:100:800;
+n_values = 50;
+% beta_values = linspace(0.1,1,5);
+beta_values = 0.5;
 
 % Initialize the solution and runtime matrices
 % Define the number of iterations
@@ -121,47 +120,79 @@ grid on;
 
 %%
 
-% [n, m] = size(A);
-% 
-% dFdz = [H -A;A' zeros(m,m)];
-% 
-% dFdb = [zeros(length(b),length(b));-eye(length(b),length(b))];
-% 
-% dzdb = -dFdz\dFdb;
+[n, m] = size(A);
+
+dFdz = [H -A;A' zeros(m,m)];
+
+dFdb = [zeros(length(g),length(b));-eye(length(b),length(b))];
+
+dzdb = -dFdz\dFdb;
+
+b1_range = 8.5:0.1:18.68;
+
+bs = [b1_range;b(2)*ones(1,length(b1_range))];
+
+dz = dzdb*bs;
 
 % TASK 1.6
 % Define the range for b(1)
 b1_range = 8.5:0.1:18.68;
+solver = 'range-space';
 
 % Initialize the solution matrix
-x_solutions = zeros(length(b1_range), length(solvers));
+solutions = zeros(length(b1_range), length(g)+2);
+phi_solutions = zeros(length(b1_range), 1);
+
+btemp = b;
+[xOG,lambdaOG] = EqualityQPSolver(H,g,A,b,solver);
+
+disp(dzdb*[-1;0])
 
 % Loop over the range of b(1)
 for i = 1:length(b1_range)
     % Update b(1)
-    b(1) = b1_range(i);
+    btemp(1) = b1_range(i);
     
-    % Loop over the solvers
-    for j = 1:length(solvers)
-        % Solve the problem using the current solver
-        [x,lambda] = EqualityQPSolver(H,g,A,b,solvers{j});
+    % Solve the problem using the current solver
+    [x,lambda] = EqualityQPSolver(H,g,A,btemp,solver);
 
-        % Compute phi and store it
-        phi = 0.5 * x' * H * x + g' * x;
-        
-        % Store the solution
-        x_solutions(i,j) = phi;
-    end
+    % Compute phi and store it
+    phi = 0.5 * x' * H * x + g' * x;
+    
+    % Store the solution
+    phi_solutions(i) = phi;
+
+    solutions(i,:) = [x;lambda];
 end
 
 % Plot the solutions
 figure;
-hold on;
-for j = 1:length(solvers)
-    plot(b1_range, x_solutions(:,j), '-o', 'DisplayName', solvers{j});
-end
-hold off;
-legend('Location', 'best', 'Interpreter', 'latex');
+subplot(1,3,1)
+plot(b1_range, phi_solutions, '-',LineWidth=1.5);
+xlim([min(b1_range),max(b1_range)])
 xlabel('$b(1)$', 'Interpreter', 'latex');
 ylabel('$\phi(x)$', 'Interpreter', 'latex');
-title('Solution $\phi(x)$ for $b(1) \in [8.5, 18.68]$ using LUdense solver', 'Interpreter', 'latex');
+legend('$\phi$')
+title("Numerical objective function")
+
+subplot(1,3,2)
+plot(b1_range, solutions, '-',LineWidth=1.5);
+xlim([min(b1_range),max(b1_range)])
+xlabel('$b(1)$', 'Interpreter', 'latex');
+ylabel('$x$', 'Interpreter', 'latex');
+legend('$x_1$','$x_2$','$x_3$','$x_4$','$x_5$','$\lambda_1$','$\lambda_2$')
+title("Numerical solutions")
+
+subplot(1,3,3)
+bar({'$x_1$','$x_2$','$x_3$','$x_4$','$x_5$','$\lambda_1$','$\lambda_2$'},dzdb*[1;0])
+title("Analytical derivatives")
+
+% subplot(1,3,3)
+% plot(b1_range, dz(1:5,:)', '-',LineWidth=1.5);
+% xlim([min(b1_range),max(b1_range)])
+% xlabel('$b(1)$', 'Interpreter', 'latex');
+% ylabel('$x$', 'Interpreter', 'latex');
+% legend('$x_1$','$x_2$','$x_3$','$x_4$','$x_5$')
+% title("Analytical results")
+
+sgtitle('Objective function $\phi(x)$ and solution for $b(1) \in [8.5, 18.68]$', 'Interpreter', 'latex');
