@@ -1,5 +1,5 @@
 % Initial guess
-x0 = [2, 3];
+x0 = [1, 0.5];
 options.objective = @objective_function;
 options.constraints = @constraints_function;
 % options.hessian = 'BFGS'; % or @hessian_function for analytical Hessian
@@ -78,10 +78,10 @@ end
 
 function [c_eq, c_ineq, grad_ceq, grad_cineq] = constraints_function(x)
     % Define your constraints and their gradients here
-    c_eq = [];
-    c_ineq = []; % Inequality constraints
-    grad_ceq = [];
-    grad_cineq = []; % Gradients of inequality constraints
+    c_eq = [x(1) + 2 - x(2)]; % Equality constraints
+    c_ineq = [-4*x(1) + 10*x(2)]; % Inequality constraints
+    grad_ceq = [1, -1]; % Gradients of equality constraints
+    grad_cineq = [-4, 10]; % Gradients of inequality constraints
 end
 
 function H = hessian_function(x, lambda)

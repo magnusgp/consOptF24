@@ -71,7 +71,7 @@ function grad = gradient(func, x, lambda, mu)
     for i = 1:length(x)
         x_plus = x;
         x_plus(i) = x_plus(i) + epsilon;
-        grad(i) = (func(x_plus, lambda, mu) - func(x, lambda, mu)) / epsilon;
+        grad(i) = epsilon./(func(x_plus, lambda, mu) - func(x, lambda, mu));
     end
 end
 

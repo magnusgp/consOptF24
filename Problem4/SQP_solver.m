@@ -46,10 +46,13 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
         end
 
         % Solve the QP subproblem
-        [pk, lambda_k] = solve_qp_subproblem(grad_f, Bk, c_eq, c_ineq, grad_ceq, grad_cineq);
+        [pk, fval, exitflag, output, lambda_vec] = quadprog(Bk, grad_f, grad_cineq, -c_ineq, grad_ceq, -c_eq, [], [], [], optimoptions('quadprog', 'Display', 'off'));
+
+        lambda_k = lambda_vec.eqlin;
+        mu_k = lambda_vec.ineqlin;
 
         % Perform line search
-        alpha_k = line_search(xk, pk, objective, constraints, grad_f, c_eq, c_ineq, lambda_k);
+        alpha_k = sqp_line_search(xk, lambda_k, mu_k);
 
         % Update variables
         xk_prev = xk;
