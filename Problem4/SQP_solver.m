@@ -54,7 +54,8 @@ function [x_opt, fval, x_steps, exitflag, output] = SQP_solver(x0, options)
         mu_k = lambda_vec.ineqlin;
 
         % Perform line search
-        alpha_k = line_search(xk, pk, objective, constraints, grad_f, c_eq, c_ineq, lambda_k);
+        alpha_k = line_search(xk, fk, grad_f, c_eq, c_ineq, grad_ceq, grad_cineq, lambda_k, mu_k, grad_f, objective, constraints);
+        % disp(alpha_k);
 
         % Update variables
         xk_prev = xk;
@@ -76,4 +77,26 @@ function [x_opt, fval, x_steps, exitflag, output] = SQP_solver(x0, options)
     fval = objective(xk);
     output.iterations = k;
     output.lambda = lambda_k;
+end
+
+function alpha = backtrack_line_search(x, p, lagrangian, lambda, mu, g)
+    % Backtracking line-search
+    alpha = 1;
+    c1 = 0.1;
+    rho = 0.5;
+    while lagrangian(x + alpha * p, lambda + alpha * constraint(x), mu + alpha * max(0, constraint(x))) > ...
+            lagrangian(x, lambda, mu) + c1 * alpha * g' * p
+        alpha = rho * alpha;
+    end
+end
+
+function grad = gradient(func, x, lambda, mu)
+    % Numerical approximation of gradient
+    epsilon = 1e-6;
+    grad = zeros(length(x), 1);
+    for i = 1:length(x)
+        x_plus = x;
+        x_plus(i) = x_plus(i) + epsilon;
+        grad(i) = epsilon./(func(x_plus, lambda, mu) - func(x, lambda, mu));
+    end
 end

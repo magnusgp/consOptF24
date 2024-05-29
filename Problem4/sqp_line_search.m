@@ -3,7 +3,7 @@ function [x_opt, f_opt] = sqp_line_search(x0, lambda0, mu0)
     objective = @(x) (x(1)^2 + x(2) - 11)^2 + (x(1) + x(2)^2 - 7)^2;
 
     % Inequality constraint function
-    constraint = @(x) [x(1) + 2 - x(2); -4*x(1) + 10*x(2)];
+    constraint = @(x) [(x(1) + 2).^2 - x(2); -4*x(1) + 10*x(2)];
 
     % Lagrangian function
     lagrangian = @(x, lambda, mu) objective(x) + lambda'*constraint(x) + mu'*max(0, constraint(x));

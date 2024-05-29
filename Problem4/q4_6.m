@@ -1,5 +1,5 @@
 % Initial guess
-x0 = [4; 4];
+x0 = [-4; 1];
 options.objective = @objective_function;
 options.constraints = @constraints_function;
 % options.hessian = 'BFGS'; % or @hessian_function for analytical Hessian
@@ -58,12 +58,12 @@ infeasible = infeasible_C1 | infeasible_C2;
 % Convert logical matrix to numeric
 infeasible_numeric = double(infeasible);
 
-% Plot the infeasible region
-h = pcolor(X1, X2, infeasible);
-set(h, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Adjust transparency
+% % Plot the infeasible region
+% h = pcolor(X1, X2, infeasible_numeric);
+% set(h, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Adjust transparency
 
-% Set colormap for shading (gray color for infeasible regions)
-colormap([1 1 1; 0.8 0.8 0.8]); % White for feasible, gray for infeasible
+% % Set colormap for shading (gray color for infeasible regions)
+% colormap([1 1 1; 0.8 0.8 0.8]); % White for feasible, gray for infeasible
 
 % Axis labels and title
 xlabel('x1');
