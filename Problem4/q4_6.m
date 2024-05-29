@@ -1,15 +1,15 @@
 % Initial guess
-x0 = [1, 0.5];
+x0 = [4; 4];
 options.objective = @objective_function;
 options.constraints = @constraints_function;
 % options.hessian = 'BFGS'; % or @hessian_function for analytical Hessian
 options.hessian = @hessian_function;
 options.tol = 1e-6;
 options.maxIter = 100;
-options.lambda0 = [1,1];
+options.lambda0 = [1, 1];
 
 % Call the SQP solver
-[x_opt, fval, exitflag, output] = SQP_solver(x0, options);
+[x_opt, fval, x_steps, exitflag, output] = SQP_solver(x0, options);
 
 % Display results
 disp('Optimal Solution:');
@@ -44,6 +44,9 @@ plot(x_opt(1), x_opt(2), 'ro');
 contour(X1, X2, C1, [0, 0], 'r', 'LineWidth', 2);
 contour(X1, X2, C2, [0, 0], 'b', 'LineWidth', 2);
 
+% Plot the iterates
+plot(x_steps(1, :), x_steps(2, :), 'k.-', 'MarkerSize', 10, 'LineWidth', 1);
+
 % Shade the infeasible regions
 % For C1 < 0 (infeasible region is below the red curve)
 infeasible_C1 = C1 == 0;
@@ -53,14 +56,14 @@ infeasible_C2 = C2 < 0;
 infeasible = infeasible_C1 | infeasible_C2;
 
 % Convert logical matrix to numeric
-% infeasible_numeric = double(infeasible);
+infeasible_numeric = double(infeasible);
 
-% % Plot the infeasible region
-% h = pcolor(X1, X2, infeasible);
-% set(h, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Adjust transparency
+% Plot the infeasible region
+h = pcolor(X1, X2, infeasible);
+set(h, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Adjust transparency
 
-% % Set colormap for shading (gray color for infeasible regions)
-% colormap([1 1 1; 0.8 0.8 0.8]); % White for feasible, gray for infeasible
+% Set colormap for shading (gray color for infeasible regions)
+colormap([1 1 1; 0.8 0.8 0.8]); % White for feasible, gray for infeasible
 
 % Axis labels and title
 xlabel('x1');
@@ -77,15 +80,15 @@ function [f, grad_f] = objective_function(x)
 end
 
 function [c_eq, c_ineq, grad_ceq, grad_cineq] = constraints_function(x)
-    % Define your constraints and their gradients here
-    c_eq = [x(1) + 2 - x(2)]; % Equality constraints
+    % Constraints and gradients here
+    c_eq = [(x(1) + 2).^2 - x(2)]; % Equality constraints
     c_ineq = [-4*x(1) + 10*x(2)]; % Inequality constraints
-    grad_ceq = [1, -1]; % Gradients of equality constraints
+    grad_ceq = [2*x(1)+4, -1]; % Gradients of equality constraints
     grad_cineq = [-4, 10]; % Gradients of inequality constraints
 end
 
 function H = hessian_function(x, lambda)
-    % Define the Hessian of the Lagrangian here for the Himmmelblau's test problem
+    % Hessian of the Lagrangian for the Himmmelblau's test problem
     H = [120*x(1)^2 - 40*x(2) + 2, -40*x(1);
          -40*x(1), 120*x(2)^2 - 40*x(1) + 2];
 end

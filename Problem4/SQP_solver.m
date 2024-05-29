@@ -1,6 +1,6 @@
 % Implements the SQP procedure for solving the Himmelblau Test Problem NLP
 
-function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
+function [x_opt, fval, x_steps, exitflag, output] = SQP_solver(x0, options)
     % SQP_solver implements the SQP algorithm with line search.
     % Inputs:
     % x0 - initial guess
@@ -13,6 +13,7 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
     % Outputs:
     % x_opt - optimal solution
     % fval - value of the objective function at the optimal solution
+    % x_steps - history of iterates used for plotting
     % exitflag - convergence flag
     % output - additional output information
 
@@ -26,6 +27,7 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
     constraints = options.constraints;
     hessian = options.hessian;
     exitflag = 0;
+    x_steps = zeros(length(x0), maxIter);
 
     for k = 1:maxIter
         % Evaluate objective, constraints, and their gradients
@@ -52,13 +54,15 @@ function [x_opt, fval, exitflag, output] = SQP_solver(x0, options)
         mu_k = lambda_vec.ineqlin;
 
         % Perform line search
-        alpha_k = sqp_line_search(xk, lambda_k, mu_k);
+        alpha_k = line_search(xk, pk, objective, constraints, grad_f, c_eq, c_ineq, lambda_k);
 
         % Update variables
         xk_prev = xk;
         grad_f_prev = grad_f;
         xk = xk + alpha_k * pk;
-        % disp(norm(pk));
+
+        % Save the iterates for plotting
+        x_steps(:, k) = xk;
 
         % Check for convergence
         if norm(pk) < tol
