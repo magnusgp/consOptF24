@@ -6,6 +6,14 @@ addpath('../Problem2')
 
 f = @(x) (x(1).^2+x(2)-11).^2 + (x(1) + x(2).^2 - 7).^2;
 
+options = optimoptions("fmincon",...
+    "Algorithm","interior-point",...
+    "SubproblemAlgorithm","cg");
+
+[xout1,fval1,exitflag1,output1] = fmincon(f,[-4;2],-[-4 10],0,[],[],[],[],@mycon,options);
+[xout1,fval1,exitflag1,output1] = fmincon(f,[0;1],-[-4 10],0,[],[],[],[],@mycon,options);
+xout3 = fmincon(f,[4;2],-[-4 10],0,[],[],[],[],@mycon,options);
+
 df = @(x) [4*x(1)^3 + (4*x(2) - 42)*x(1) + 2*x(2)^2 - 14;
            4*x(2)^3 + (4*x(1) - 26)*x(2) + 2*x(1)^2 - 22];
 
