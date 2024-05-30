@@ -19,6 +19,7 @@ function [x,X,iter] = nlpsolverSQPLineSearch(mu,x0,y0,z0,cE,cI,AE,AI,f,df,ddL,QP
     converged = false;
     maxiter = 100;
     tol = 1.0e-6;
+    iterreset = 5; % Reset Hessian every 10th iteration
 
     X = x;
 
@@ -100,8 +101,8 @@ function [x,X,iter] = nlpsolverSQPLineSearch(mu,x0,y0,z0,cE,cI,AE,AI,f,df,ddL,QP
 
             Bk = Bk - ((Bk*p)*(Bk*p)')/(p'*(Bk*p)) + (r*r')/(p'*r);
 
-            % Reset if NaNs produced
-            if nnz(isnan(Bk)) > 0
+            % Reset if NaNs produced or every 10th iteration
+            if nnz(isnan(Bk)) > 0 || mod(iter,iterreset) == 0
                 Bk = eye(length(x0));
             end
         

@@ -2,15 +2,12 @@ clear
 clc
 close all
 
-beta = 0.8;
-alpha = 10;
-
 % Sparsity
 s = 0.8;
 
-Beta = 0:0.2:1;
+Beta = linspace(0.1,0.9,4);
+N = round(linspace(10,350,6));
 
-N = 10:50:400;
 times = zeros(length(N),length(Beta),3);
 
 options =  optimset('Display','off');
@@ -53,7 +50,7 @@ for i = 1:length(N)
         lb = zeros(n,1);
         options = optimoptions('linprog','Display','off');
         timefun = @() linprog(g, [], [], A, b, lb, [], options);
-        times(i,1) = timeit(timefun);
+        times(i,j,1) = timeit(timefun);
     
         [xlinprog, ~, exitflag] = linprog(g, [], [], A, b, lb, [], options);
         disp(exitflag)
@@ -61,9 +58,9 @@ for i = 1:length(N)
         %% Active set
         disp("AS")
     
-        maxiter = 1000;
+        maxiter = 3000;
         timefun = @() lpsolverActiveSet(g,A,b,x0,Bset,Nset,maxiter);
-        times(i,2) = timeit(timefun);
+        times(i,j,2) = timeit(timefun);
     
         [xAS,~,itAS] = lpsolverActiveSet(g,A,b,x0,Bset,Nset,maxiter);
     
@@ -75,7 +72,7 @@ for i = 1:length(N)
         maxIter = 1000;
         tol = 1.0e-9;
         timefun = @() lpsolverInteriorPoint(g,A,b,tol);
-        times(i,3) = timeit(timefun);
+        times(i,j,3) = timeit(timefun);
         [xIP,lambda,s,itIP,info,~,~,~] = lpsolverInteriorPoint(g,A,b,tol);
     
         disp(itIP)
@@ -90,22 +87,22 @@ end
 
 figure;
 subplot(1,2,1)
-plot(N,times(:,1),'-o',LineWidth=1.5)
+plot(N,squeeze(mean(times(:,:,1),2)),'-o',LineWidth=1.5)
 hold on
-plot(N,times(:,2),'-o',LineWidth=1.5)
+plot(N,squeeze(mean(times(:,:,2),2)),'-o',LineWidth=1.5)
 hold on
-plot(N,times(:,3),'-o',LineWidth=1.5)
+plot(N,squeeze(mean(times(:,:,3),2)),'-o',LineWidth=1.5)
 legend("Linprog","Active set","Interior point",Location="northwest")
 xlabel("Problem size (N)")
 ylabel("CPU time (sec.)")
 grid on
 
 subplot(1,2,2)
-plot(Beta, squeeze(mean(times(:,:,1), 1)), 'o-',LineWidth=1.5);
+plot(Beta,squeeze(mean(times(:,:,1),1)), 'o-',LineWidth=1.5);
 hold on
-plot(Beta, squeeze(mean(times(:,:,2), 1)), 'o-',LineWidth=1.5);
+plot(Beta,squeeze(mean(times(:,:,2),1)), 'o-',LineWidth=1.5);
 hold on
-plot(Beta, squeeze(mean(times(:,:,3), 1)), 'o-',LineWidth=1.5);
+plot(Beta,squeeze(mean(times(:,:,3),1)), 'o-',LineWidth=1.5);
 legend("Linprog","Active set","Interior point",Location="northwest")
 xlabel("Amount of constraints (beta)")
 ylabel("CPU time (sec.)")

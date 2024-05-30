@@ -31,6 +31,7 @@ function [x,X,iter] = nlpsolverSQPTrustRegion(mu,Delta0,x0,y0,z0,cE,cI,AE,AI,f,d
     tol = 1.0e-6;
     eta = 0.5;
     gam = 0.9;
+    iterreset = 5; % Reset Hessian every 10th iteration
 
     X = x;
 
@@ -104,7 +105,7 @@ function [x,X,iter] = nlpsolverSQPTrustRegion(mu,Delta0,x0,y0,z0,cE,cI,AE,AI,f,d
                 Bk = Bk - ((Bk*p)*(Bk*p)')/(p'*(Bk*p)) + (r*r')/(p'*r);
     
                 % Reset if NaNs produced
-                if nnz(isnan(Bk)) > 0
+                if nnz(isnan(Bk)) > 0 || mod(iter,iterreset) == 0
                     Bk = eye(length(x0));
                 end
             
