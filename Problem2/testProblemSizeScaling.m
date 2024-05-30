@@ -6,23 +6,25 @@ beta = 0.8;
 alpha = 10;
 
 % Sparsity
-S = 0:0.2:1;
+s = 0.8;
+
+Beta = 0:0.2:1;
 
 N = 10:50:100;
-times = zeros(length(N),length(S),3);
+times = zeros(length(N),length(Beta),3);
 
 options =  optimset('Display','off');
 
 warning('off')
 
 for i = 1:length(N)
-    for j = 1:length(S)
+    for j = 1:length(Beta)
     
         disp("Iteration")
         disp(N(i))
         
         n = N(i);
-        s = S(j);
+        beta = Beta(j);
         
         % Calculate m
         m = round(beta * n);
@@ -119,13 +121,13 @@ ylabel("CPU time (sec.)")
 grid on
 
 subplot(1,2,2)
-plot(S, squeeze(mean(times(:,:,1), 1)), 'o-',LineWidth=1.5);
+plot(Beta, squeeze(mean(times(:,:,1), 1)), 'o-',LineWidth=1.5);
 hold on
-plot(S, squeeze(mean(times(:,:,2), 1)), 'o-',LineWidth=1.5);
+plot(Beta, squeeze(mean(times(:,:,2), 1)), 'o-',LineWidth=1.5);
 hold on
-plot(S, squeeze(mean(times(:,:,3), 1)), 'o-',LineWidth=1.5);
+plot(Beta, squeeze(mean(times(:,:,3), 1)), 'o-',LineWidth=1.5);
 legend("Quadprog","AS","IPPC","IP",Location="northwest")
-xlabel("Problem size (N)")
+xlabel("Amount of constraints (beta)")
 ylabel("CPU time (sec.)")
 grid on
 

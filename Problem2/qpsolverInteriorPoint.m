@@ -1,4 +1,4 @@
-function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,A,b,C,d,maxIter,tol,predictorCorrector)
+function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,H,g,A,b,C,d,maxIter,tol,predictorCorrector)
 
     % Assume form
     % min f(x) = 1/2 x' H x + g' x
@@ -13,6 +13,14 @@ function [xopt,lambdaopt,X,it,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,
     % z: inequality constraint lagrange multiplier
     % s: slack variable
     
+    if isempty(A)
+        y0 = [];
+    else
+        y0 = ones(length(b),1);
+    end
+    z0 = ones(size(C,2),1);
+    s0 = z0;
+
     % Initialize
     x = x0;
     y = y0;

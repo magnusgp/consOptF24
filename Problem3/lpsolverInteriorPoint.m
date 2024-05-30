@@ -64,13 +64,6 @@ function [x,lambda,s,iter,info,rcres,rbres,mures,Xmat] = lpsolverInteriorPoint(g
                 (norm(rb,'inf') <= tolb) && ...
                 (abs(mu) <= tolmu);
 
-    % When close to optimum, use more stable solver
-    tol1 = 1.0e+05;
-    % solver1 = (norm(rc,'inf') <= tol1) && ...
-    %           (norm(rb,'inf') <= tol1) && ...
-    %           (abs(mu) <= tol1);
-    solver1 = (min(x) < tol1) && (min(s) < tol1);
-
     iter = 0;
     while ~Converged && (iter<maxit)
         iter = iter+1;
@@ -80,39 +73,19 @@ function [x,lambda,s,iter,info,rcres,rbres,mures,Xmat] = lpsolverInteriorPoint(g
         X = diag(x);
         S = diag(s);
 
-        Sinv = diag(1./s);
-        Xinv = diag(1./x);
-        
         %% Affine step
 
-        if solver1
-            sysmat = [zeros(n) A' eye(n);
-                      A zeros(m) zeros(m,n);
-                      S zeros(n,m) X];
-    
-            rhs = [-rc;-rb;-rxs];
-    
-            sol = sysmat\rhs;
-    
-            dx = sol(1:length(x));
-            % dlambda = sol((length(x)+1):(length(x)+length(lambda)));
-            ds = sol((length(x)+length(lambda)+1):end);
-        else 
-            disp("here")
-            D = diag(x./s);
+        sysmat = [zeros(n) A' eye(n);
+                  A zeros(m) zeros(m,n);
+                  S zeros(n,m) X];
 
-            sysmat = [D A';
-                      A zeros(m,m)];
+        rhs = [-rc;-rb;-rxs];
 
-            rhs = [-rc+Xinv*rxs;-rb];
+        sol = sysmat\rhs;
 
-            sol = sysmat\rhs;
-
-            dx = sol(1:length(x));
-            % dlambda = sol((length(x)+1):(length(x)+length(lambda)));
-
-            ds = -Xinv*rxs - Xinv*S*dx;
-        end
+        dx = sol(1:length(x));
+        % dlambda = sol((length(x)+1):(length(x)+length(lambda)));
+        ds = sol((length(x)+length(lambda)+1):end);
 
         % Step length
         idx = find(dx < 0.0);
@@ -130,27 +103,14 @@ function [x,lambda,s,iter,info,rcres,rbres,mures,Xmat] = lpsolverInteriorPoint(g
         sigma = (muaff/mu)^3;
 
         % Center-Corrector Step
-        
-        if solver1
-            rhs = [-rc;-rb;-rxs - dx.*ds + sigma*mu];
 
-            sol = sysmat\rhs;
-    
-            dx = sol(1:length(x));
-            dlambda = sol((length(x)+1):(length(x)+length(lambda)));
-            ds = sol((length(x)+length(lambda)+1):end);
-        else 
-            temp = -x.*s - dx.*ds + sigma*mu;
+        rhs = [-rc;-rb;-rxs - dx.*ds + sigma*mu];
 
-            rhs = [-rc+Xinv*temp;-rb];
+        sol = sysmat\rhs;
 
-            sol = sysmat\rhs;
-
-            dx = sol(1:length(x));
-            dlambda = sol((length(x)+1):(length(x)+length(lambda)));
-
-            ds = -Xinv*temp - Xinv*S*dx;
-        end
+        dx = sol(1:length(x));
+        dlambda = sol((length(x)+1):(length(x)+length(lambda)));
+        ds = sol((length(x)+length(lambda)+1):end);
         
         % Step length
         idx = find(dx < 0.0);
@@ -185,11 +145,6 @@ function [x,lambda,s,iter,info,rcres,rbres,mures,Xmat] = lpsolverInteriorPoint(g
         Converged = (norm(rc,'inf') <= tolc) && ...
                     (norm(rb,'inf') <= tolb) && ...
                     (abs(mu) <= tolmu);
-
-        % solver1 = (norm(rc,'inf') <= tol1) && ...
-        %           (norm(rb,'inf') <= tol1) && ...
-        %           (abs(mu) <= tol1);
-        solver1 = (min(x) < tol1) && (min(s) < tol1);
 
     end
     

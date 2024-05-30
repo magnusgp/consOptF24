@@ -59,7 +59,7 @@ tol = 1.0e-8;
 
 tic;
 predictorCorrector = true;
-[xIPPC,lambdaIPPC,XIPPC,itIPPC,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
+[xIPPC,lambdaIPPC,XIPPC,itIPPC,rszres,rLres,rCres] = qpsolverInteriorPoint(x0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
 IPPCTime = toc;
 
 PlotSolutionQP(xIPPC)
@@ -69,7 +69,7 @@ sgtitle("Interior point w. predictor corrector")
 
 tic;
 predictorCorrector = false;
-[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
+[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,H,g,[],[],A,-b,maxIter,tol,predictorCorrector);
 IPTime = toc;
 
 PlotSolutionQP(xIP)
