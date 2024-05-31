@@ -6,7 +6,7 @@ close all
 s = 0.8;
 
 Beta = linspace(0.1,0.9,4);
-N = round(linspace(10,350,6));
+N = round(linspace(10,300,6));
 
 times = zeros(length(N),length(Beta),3);
 

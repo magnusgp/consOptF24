@@ -1,1 +1,0 @@
-% Implements the SLQP procedure for solving the Himmelblau Test Problem NLP

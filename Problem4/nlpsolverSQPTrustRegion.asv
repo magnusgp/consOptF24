@@ -27,9 +27,9 @@ function [x,X,iter] = nlpsolverSQPTrustRegion(mu,Delta0,x0,y0,z0,cE,cI,AE,AI,f,d
     qmu = @(xk,pk,Bk) f(xk) + df(xk)'*pk + 0.5*pk'*Bk*pk + mu*mk(xk,pk);
 
     converged = false;
-    maxiter = 200;
-    tol = 1.0e-6;
-    eta = 0.1;
+    maxiter = 100;
+    tol = 1.0e-8;
+    eta = 0.5;
     gam = 0.9;
     iterreset = 5; % Reset Hessian every 5th iteration
 
@@ -85,6 +85,7 @@ function [x,X,iter] = nlpsolverSQPTrustRegion(mu,Delta0,x0,y0,z0,cE,cI,AE,AI,f,d
 
             % Update Hessian if using BFGS
             if BFGS
+                disp("Here")
                 
                 dLx = df(xtemp)-AE(xtemp)'*y-AI(xtemp)'*z;
     

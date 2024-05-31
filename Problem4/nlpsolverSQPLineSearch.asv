@@ -25,7 +25,7 @@ function [x,X,iter] = nlpsolverSQPLineSearch(mu,x0,y0,z0,cE,cI,AE,AI,f,df,ddL,QP
 
     converged = false;
     maxiter = 500;
-    tol = 1.0e-6;
+    tol = 1.0e-8;
     iterreset = 10; % Reset Hessian every 10th iteration
 
     X = x;
@@ -65,9 +65,9 @@ function [x,X,iter] = nlpsolverSQPLineSearch(mu,x0,y0,z0,cE,cI,AE,AI,f,df,ddL,QP
         [sol,lambda,~,~] = QPsolver(init,quadterm,linterm,Aeq,beq,Aineq,bineq,200,1.0e-5,true);
 
         px = sol(1:nx);
-        % v = sol((nx+1):(nx+nE));
-        % w = sol((nx+nE+1):(nx+2*nE));
-        % t = sol((nx+2*nE+1):end);
+        v = sol((nx+1):(nx+nE));
+        w = sol((nx+nE+1):(nx+2*nE));
+        t = sol((nx+2*nE+1):end);
 
         yhat = lambda(1:nE);
         zhat = lambda((nE+1):(nE+nI));
@@ -76,14 +76,12 @@ function [x,X,iter] = nlpsolverSQPLineSearch(mu,x0,y0,z0,cE,cI,AE,AI,f,df,ddL,QP
         py = yhat - y;
         pz = zhat - z;
 
-        penparm = 0.9;
-
         % Penalty parameters
-        ys = max(abs(y), penparm*(ys + abs(y)));
-        zs = max(abs(z), penparm*(zs + abs(z)));
+        ys = max(abs(y), 0.5*(ys + abs(y)));
+        zs = max(abs(z), 0.5*(zs + abs(z)));
         
         % Compute optimal step lengths
-        alpha = linesearch(x,px,f,df,cE,cI,ys,zs);
+        alpha = linesearch(x,px,f,df,cE,cI,ys,zs,v,w,t);
         
         xtemp = x;
 

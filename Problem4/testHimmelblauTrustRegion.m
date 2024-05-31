@@ -62,17 +62,19 @@ Delta0 = 1;
 x01 = [-4;2];
 x02 = [4;2];
 x03 = [0;1];
+x04 = [0;-3];
 
 [x,Xout1,iter1] = nlpsolverSQPTrustRegion(mu,Delta0,x01,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 [x,Xout2,iter2] = nlpsolverSQPTrustRegion(mu,Delta0,x02,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 [x,Xout3,iter3] = nlpsolverSQPTrustRegion(mu,Delta0,x03,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
+[x,Xout4,iter4] = nlpsolverSQPTrustRegion(mu,Delta0,x04,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 
 figure
 subplot(1,2,1)
 
 colormap jet
 contour(X1,X2,F,v,'linewidth',1, 'HandleVisibility','off');
-colorbar
+xticks(x1start:1:x1end)
 
 hold on
 
@@ -99,6 +101,10 @@ hold on
 plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
+hold on
+plot(Xout4(1,:),Xout4(2,:),'-o',LineWidth=1.5,Color='m')
+hold on
+plot(Xout4(1,end),Xout4(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 title("With BFGS")
 
 % disp(Xout1(:,end)-sol1')
@@ -107,11 +113,13 @@ title("With BFGS")
 [x,Xout1,iter1] = nlpsolverSQPTrustRegion(mu,Delta0,x01,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
 [x,Xout2,iter2] = nlpsolverSQPTrustRegion(mu,Delta0,x02,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
 [x,Xout3,iter3] = nlpsolverSQPTrustRegion(mu,Delta0,x03,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
+[x,Xout4,iter4] = nlpsolverSQPTrustRegion(mu,Delta0,x04,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
 
 subplot(1,2,2)
 
 colormap jet
 contour(X1,X2,F,v,'linewidth',1, 'HandleVisibility','off');
+xticks(x1start:1:x1end)
 colorbar
 
 hold on
@@ -139,20 +147,10 @@ hold on
 plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
+hold on
+plot(Xout4(1,:),Xout4(2,:),'-o',LineWidth=1.5,Color='m')
+hold on
+plot(Xout4(1,end),Xout4(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 title("Without BFGS")
 
 sgtitle("SQP with line search with and without BFGS")
-
-% disp(Xout1(:,end)-sol1')
-% disp(Xout3(:,end)-sol2')
-
-% if iter > 1 && false
-%     % Second order approximation
-%     d = [cE(x);cI(x)] - [AE(x);AI(x)]*px;
-% 
-%     % Solve qp
-%     [px,lambda,~,~] = QPsolver(x,Bk,df(x),AE(x)',-d(1:nE),AI(x)',-d((nE+1):end),200,1.0e-9,true);
-% else
-%     % Solve qp
-%     [px,lambda,~,~] = QPsolver(x,Bk,df(x),AE(x)',-cE(x),AI(x)',-cI(x),200,1.0e-9,true);
-% end

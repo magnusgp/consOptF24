@@ -1,6 +1,6 @@
 clear
 clc
-close all
+% close all
 
 addpath('../Problem2')
 
@@ -50,19 +50,24 @@ mu = 100;
 x01 = [-4;2];
 x02 = [4;2];
 x03 = [0;1];
-x04 = [0;-4];
+x04 = [0;-3];
 
 [x,Xout1,iter1] = nlpsolverSQPLineSearch(mu,x01,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 [x,Xout2,iter2] = nlpsolverSQPLineSearch(mu,x02,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 [x,Xout3,iter3] = nlpsolverSQPLineSearch(mu,x03,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 [x,Xout4,iter4] = nlpsolverSQPLineSearch(mu,x04,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,true);
 
+disp(iter1)
+disp(iter2)
+disp(iter3)
+disp(iter4)
+
 figure
 subplot(1,2,1)
 
 colormap jet
 contour(X1,X2,F,v,'linewidth',1, 'HandleVisibility','off');
-colorbar
+xticks(x1start:1:x1end)
 
 hold on
 
@@ -78,15 +83,15 @@ xlabel("$x_1$")
 ylabel("$x_2$")
 
 hold on
-plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='r')
 hold on
 plot(Xout1(1,end),Xout1(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='g')
 hold on
 plot(Xout2(1,end),Xout2(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='b')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
@@ -106,11 +111,17 @@ z0 = [1];
 [x,Xout3,iter3] = nlpsolverSQPLineSearch(mu,x03,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
 [x,Xout4,iter4] = nlpsolverSQPLineSearch(mu,x04,y0,z0,cE,cI,AE,AI,f,df,ddL,@qpsolverInteriorPoint,false);
 
+disp(iter1)
+disp(iter2)
+disp(iter3)
+disp(iter4)
+
 subplot(1,2,2)
 
 colormap jet
 contour(X1,X2,F,v,'linewidth',1, 'HandleVisibility','off');
 colorbar
+xticks(x1start:1:x1end)
 
 hold on
 
@@ -126,15 +137,15 @@ xlabel("$x_1$")
 ylabel("$x_2$")
 
 hold on
-plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='r')
 hold on
 plot(Xout1(1,end),Xout1(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='g')
 hold on
 plot(Xout2(1,end),Xout2(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='b')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
