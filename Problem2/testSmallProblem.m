@@ -24,7 +24,6 @@ disp("Fmincon:")
 disp(xout)
 
 % Feasible starting point
-x0 = [4;5];
 y0 = [];
 z0 = [1;1];
 s0 = [1;1];
@@ -33,10 +32,10 @@ maxIter = 100;
 tol = 10^-6;
 
 predictorCorrector = true;
-[xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
+[xIPPC,lambdaIPPC,XIPPC,itIPPC] = qpsolverInteriorPoint(x0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
 predictorCorrector = false;
-[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,y0,z0,s0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
+[xIP,lambdaIP,XIP,itIP] = qpsolverInteriorPoint(x0,H,g,[],[],C,d,maxIter,tol,predictorCorrector);
 
 [xAS,lambdaAS,XAS,Wset,itAS] = qpsolverActiveSet(H,g,C,-d,x0,tol);
 
@@ -89,3 +88,5 @@ plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerSize',3,'MarkerFaceColor','r','li
 plot(XIPPC(1,:),XIPPC(2,:),'-o','color','b','MarkerSize',3,'MarkerFaceColor','b','linewidth',1.5)
 plot(XAS(1,:),XAS(2,:),'-o','color','m','MarkerSize',3,'MarkerFaceColor','m','linewidth',1.5)
 legend("Interior point w.o. corrector","Interior point w. corrector","Active set",Location="southwest")
+
+sgtitle("Comparing IP with and without corrector and AS")

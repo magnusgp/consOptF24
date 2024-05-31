@@ -18,7 +18,7 @@ x0AS = [5;0];
 Bset = [1];
 Nset = [2];
 
-x0IP = [1;1];
+x0IP = [0;0];
 
 % A = [1 1 1 0;
 %      2 0.5 0 1];
@@ -48,7 +48,7 @@ lambda0 = zeros(size(A,1),1);
 maxIter = 100;
 tol = 10^-6;
 
-[xIP,lambda,s,iterIP,info,rcres,rbres,mures,XIP] = lpsolverInteriorPoint(g,A,b,x0IP,lambda0,s0,tol);
+[xIP,lambda,s,iterIP,info,rcres,rbres,mures,XIP] = lpsolverInteriorPoint(g,A,b,tol);
 
 disp("IP:")
 disp(xIP)
@@ -66,7 +66,7 @@ disp(iterAS)
 N = 150;
 
 x1start = 0;
-x1end = 5;
+x1end = 6;
 x2start = 0;
 x2end = 10;
 
@@ -97,3 +97,5 @@ plot(X1(C1),X2(C1),'-',LineWidth=3,Color='k')
 plot(XIP(1,:),XIP(2,:),'-o','color','r','MarkerSize',5,'MarkerFaceColor','r','linewidth',1.5)
 plot(XAS(1,:),XAS(2,:),'-o','color','m','MarkerSize',5,'MarkerFaceColor','m','linewidth',1.5)
 legend("Ax=b","Interior point","Active set",Location="northeast",fontsize=10)
+
+sgtitle("Comparing IP and AS")

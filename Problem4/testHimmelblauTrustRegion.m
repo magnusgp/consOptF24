@@ -90,15 +90,15 @@ xlabel("$x_1$")
 ylabel("$x_2$")
 
 hold on
-plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='r')
 hold on
 plot(Xout1(1,end),Xout1(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='g')
 hold on
 plot(Xout2(1,end),Xout2(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='b')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
@@ -136,15 +136,15 @@ xlabel("$x_1$")
 ylabel("$x_2$")
 
 hold on
-plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout1(1,:),Xout1(2,:),'-o',LineWidth=1.5,Color='r')
 hold on
 plot(Xout1(1,end),Xout1(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout2(1,:),Xout2(2,:),'-o',LineWidth=1.5,Color='g')
 hold on
 plot(Xout2(1,end),Xout2(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
-plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='m')
+plot(Xout3(1,:),Xout3(2,:),'-o',LineWidth=1.5,Color='b')
 hold on
 plot(Xout3(1,end),Xout3(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 hold on
@@ -153,4 +153,4 @@ hold on
 plot(Xout4(1,end),Xout4(2,end),'*',LineWidth=2,MarkerSize=14,Color='k')
 title("Without BFGS")
 
-sgtitle("SQP with line search with and without BFGS")
+sgtitle("SQP with trust region with and without BFGS")
